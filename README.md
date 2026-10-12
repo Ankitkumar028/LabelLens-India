@@ -15,9 +15,12 @@
 
 Most consumers in India are misled by packaged food claims—digestive biscuits filled with maltodextrin, "fruit drinks" with 30g of liquid glucose, and snacks concealing vanaspati or trans fats. 
 
-**LabelLens India** empowers consumers to point their phone camera at any food label and receive an instant, objective nutritional analysis:
+**LabelLens India** empowers consumers to point their phone camera at any food label or scan its barcode and receive an instant, objective nutritional analysis:
 - **Strict Extraction Contract**: Vision-Language Models output structured JSON adhering to strict Pydantic schemas. Undeclared nutrients yield `null`—never guessed—triggering regulatory red flags.
 - **Auditable Rules Engine**: 100% YAML-configured ([`apps/api/config/rules.yaml`](apps/api/config/rules.yaml)) for transparent FSSAI compliance without code redeployments.
+- **Barcode Scanner Integration**: Instant lookup via Open Food Facts India API with offline FMCG dataset fallback (*Maggi*, *Amul*, *Parle-G*, *Good Day*, *Lay's*, *Real Juice*).
+- **Hindi & Marathi Multilingual UI**: Full localization for English, Hindi (हिंदी), and Marathi (मराठी) with persistent user preference.
+- **Side-by-Side Product Comparison**: Head-to-head snack battles (*Muesli vs Cereal*, *Seeds vs Biscuits*, *Oats vs Noodles*), dynamic winner trophy calculation, and custom photo / barcode / manual comparison slots.
 - **Swappable Vision LLMs**: Toggled seamlessly via `LLM_PROVIDER=vllm|gemini|mock` between local AMD ROCm GPU droplets, Google Gemini 1.5 Flash, and deterministic offline mocks.
 - **Full Production Observability**: Real-time Prometheus metrics (`/metrics`) and provisioned Grafana dashboards.
 - **Zero Ongoing Operating Cost**: Runs 100% within free-tier quotas (Oracle Cloud Always Free / Render + Gemini Flash free tier).
@@ -113,10 +116,10 @@ docker compose up -d --build
 
 ## 🧪 Testing & Verification
 
-Run the complete 33-test suite inside the isolated Docker container:
+Run the complete 37-test suite inside the isolated Docker container:
 
 ```bash
-docker run --rm labellens-api:latest pytest -v
+docker run --rm ai_assisted_devops-api:latest pytest -v
 ```
 
 ### Run Golden Eval Benchmark:

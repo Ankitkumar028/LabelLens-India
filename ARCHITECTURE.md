@@ -136,16 +136,16 @@ AI_assisted_devOps/
 5. **Eval harness** – 20–30 labelled sample wrappers; CI measures extraction accuracy; a regression fails the build.
 6. **Benchmark page** – latency/throughput of Qwen2.5-VL on AMD MI300X vs Gemini API.
 
-## 9. Phases (give Antigravity one at a time)
-| Phase | Deliverable |
-|---|---|
-| 1 | Repo scaffold, FastAPI `/health`, `mock` provider, rules engine + unit tests |
-| 2 | Frontend with camera upload, shows red flags/score; docker-compose runs everything locally |
-| 3 | Gemini provider (free) → real extraction; golden-sample eval harness |
-| 4 | GitHub Actions CI (test, build, Trivy, gitleaks) |
-| 5 | Terraform + vLLM on AMD GPU droplet; `LLM_PROVIDER=vllm`; benchmark; **destroy the GPU** |
-| 6 | Deploy free hosting + domain; Prometheus/Grafana; AI PR reviewer + failure explainer |
-| 7 | README, architecture diagram, demo video, blog post |
+## 9. Phases & Completion Status
+| Phase | Deliverable | Status |
+|---|---|:---:|
+| 1 | Repo scaffold, FastAPI `/health`, `mock` provider, rules engine + unit tests | ✅ **100% Complete** |
+| 2 | Frontend with camera upload, shows red flags/score; docker-compose runs everything locally | ✅ **100% Complete** |
+| 3 | Gemini provider (free) → real extraction; golden-sample eval harness | ✅ **100% Complete** |
+| 4 | GitHub Actions CI (test, build, Trivy, gitleaks) | ✅ **100% Complete** |
+| 5 | Terraform + vLLM on AMD GPU droplet; `LLM_PROVIDER=vllm`; benchmark; **destroy the GPU** | ✅ **IaC & Benchmarks Complete** (Cost Guard Verified) |
+| 6 | Deploy free hosting + domain; Prometheus/Grafana; AI PR reviewer + failure explainer | ✅ **Ready for 1-Click Deploy** (Fly/Render Blueprints) |
+| 7 | README, architecture diagram, demo video, blog post, portfolio polish | ✅ **100% Complete** |
 
 ## 10. Free hosting & domain
 - **App (no GPU):** Oracle Cloud Always Free VM (best: runs the full docker-compose), or Render/Fly.io free tiers.
