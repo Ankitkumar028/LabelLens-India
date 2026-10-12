@@ -41,3 +41,24 @@ services:
           property: host
       - key: API_BACKEND_URL
         value: http://labellens-api:8000
+
+  # Grafana + Prometheus Monitoring Service (Free Tier)
+  - type: web
+    name: labellens-monitoring
+    runtime: docker
+    dockerfilePath: ./infra/monitoring/Dockerfile
+    dockerContext: ./infra/monitoring
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: GF_SECURITY_ADMIN_USER
+        value: admin
+      - key: GF_SECURITY_ADMIN_PASSWORD
+        value: admin
+      - key: GF_AUTH_ANONYMOUS_ENABLED
+        value: "true"
+      - key: API_METRICS_HOST
+        value: labellens-api-ktax.onrender.com
+      - key: API_METRICS_SCHEME
+        value: https
