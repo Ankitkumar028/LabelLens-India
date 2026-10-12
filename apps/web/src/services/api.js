@@ -2,7 +2,10 @@
  * API Client for LabelLens India backend services.
  */
 
-const BASE_URL = '';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const BASE_URL = rawApiUrl.startsWith('http')
+  ? rawApiUrl
+  : (rawApiUrl ? `https://${rawApiUrl}` : '');
 
 export async function checkHealth() {
   try {
