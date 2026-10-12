@@ -1,0 +1,27 @@
+{
+  "product_name": "Street Style Spicy Bhujia",
+  "serving_size_g": 50.0,
+  "per_100g": null,
+  "ingredients": [
+    "Gram Flour",
+    "Edible Vegetable Oil (Palmolein)",
+    "Spices & Condiments",
+    "Salt"
+  ],
+  "sugar_sources": [],
+  "fat_sources": [
+    "Palmolein Oil"
+  ],
+  "allergens_declared": null,
+  "fssai_license_present": false,
+  "veg_nonveg_mark": "none",
+  "claims": [
+    "Crispy & Delicious"
+  ],
+  "expiry_or_best_before_present": true,
+  "confidence": 0.72,
+  "unreadable_fields": [
+    "nutrition_table",
+    "fssai_number"
+  ]
+}

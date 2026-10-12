@@ -1,0 +1,181 @@
+version: "1.0.0"
+disclaimer: "Informational only, not medical advice."
+
+# Dictionaries for ingredient analysis
+dictionaries:
+  sugar_aliases:
+    - "maltodextrin"
+    - "dextrose"
+    - "invert syrup"
+    - "liquid glucose"
+    - "glucose syrup"
+    - "high fructose corn syrup"
+    - "hfcs"
+    - "corn syrup"
+    - "jaggery"
+    - "jaggery syrup"
+    - "molasses"
+    - "sucrose"
+    - "brown sugar"
+    - "cane sugar"
+    - "fructose"
+    - "honey"
+    - "agave nectar"
+    - "barley malt extract"
+    - "malt extract"
+    - "caramel"
+    - "fruit juice concentrate"
+    - "golden syrup"
+    - "rice syrup"
+    - "date syrup"
+
+  sugar_primary_names:
+    - "sugar"
+    - "refined sugar"
+    - "white sugar"
+    - "cane sugar"
+    - "sucrose"
+    - "invert sugar"
+    - "invert syrup"
+    - "brown sugar"
+
+  hydrogenated_fat_indicators:
+    - "hydrogenated vegetable oil"
+    - "hydrogenated vegetable fat"
+    - "partially hydrogenated vegetable oil"
+    - "partially hydrogenated vegetable fat"
+    - "partially hydrogenated"
+    - "vanaspati"
+    - "interesterified vegetable fat"
+    - "interesterified fat"
+    - "margarine"
+    - "shortening"
+
+# Nutrient thresholds (per 100g)
+thresholds:
+  high_total_sugar_g_per_100g: 10.0
+  high_saturated_fat_g_per_100g: 4.0
+  high_trans_fat_g_per_100g: 0.2
+  high_sodium_mg_per_100g: 400.0
+  good_fibre_g_per_100g: 3.0
+  good_protein_g_per_100g: 8.0
+
+# Base score and grading
+scoring:
+  base_score: 100
+  minimum_score: 0
+  maximum_score: 100
+  grades:
+    green:
+      min_score: 70
+      label: "GREEN"
+      description: "Healthier choice based on declared information."
+    amber:
+      min_score: 40
+      label: "AMBER"
+      description: "Moderate caution advised; check high sugar, fats, sodium or missing fields."
+    red:
+      min_score: 0
+      label: "RED"
+      description: "High risk; excessive critical nutrients or severely misleading/incomplete label."
+
+  # Nutrient deductions
+  nutrient_penalties:
+    total_sugar_deduction_rate: 1.2
+    sat_fat_deduction_rate: 2.0
+    trans_fat_deduction_rate: 15.0
+    sodium_deduction_per_100mg: 2.5
+    fibre_bonus_rate: 2.0
+    max_fibre_bonus: 10.0
+    protein_bonus_rate: 1.0
+    max_protein_bonus: 5.0
+
+# Red flag rules evaluated by the engine
+rules:
+  - id: "nutrition_table_missing_or_incomplete"
+    severity: "HIGH"
+    category: "transparency"
+    title: "Nutrition Table Missing or Incomplete"
+    penalty: 25
+    description: "The nutritional information table is missing or core macros (energy, protein, carbohydrates, total fat) are undeclared."
+    check: "nutrition_table_incomplete"
+
+  - id: "added_sugar_undeclared_high_total"
+    severity: "MEDIUM"
+    category: "sugar"
+    title: "Added Sugar Undeclared with High Total Sugar"
+    penalty: 15
+    description: "Added sugar is not declared, while total sugar is high (>10g per 100g). FSSAI requires separate declaration of added sugars."
+    check: "added_sugar_undeclared_high_total"
+
+  - id: "trans_fat_undeclared_or_hydrogenated"
+    severity: "HIGH"
+    category: "fats"
+    title: "Trans Fat Undeclared or Hydrogenated Fat Present"
+    penalty: 25
+    description: "Trans fat declaration is omitted, or ingredients indicate presence of hydrogenated/partially hydrogenated oils or vanaspati."
+    check: "trans_fat_undeclared_or_hydrogenated"
+
+  - id: "sodium_missing"
+    severity: "MEDIUM"
+    category: "minerals"
+    title: "Sodium Content Missing"
+    penalty: 10
+    description: "Sodium content is missing from the nutritional declaration, preventing assessment of salt intake."
+    check: "sodium_missing"
+
+  - id: "hidden_sugar_aliases"
+    severity: "INFO"
+    category: "sugar"
+    title: "Hidden Sugar Aliases Detected"
+    penalty: 5
+    description: "Ingredients contain alternate sugar derivatives (e.g. maltodextrin, invert syrup, liquid glucose) which elevate glycemic load."
+    check: "hidden_sugar_aliases"
+
+  - id: "sugar_in_first_three_ingredients"
+    severity: "HIGH"
+    category: "sugar"
+    title: "Sugar Among First 3 Ingredients"
+    penalty: 20
+    description: "Sugar or syrup is listed as one of the top 3 ingredients by weight, indicating a high-sugar product formulation."
+    check: "sugar_in_first_three_ingredients"
+
+  - id: "misleading_claim_no_added_sugar"
+    severity: "HIGH"
+    category: "claims"
+    title: "Misleading Claim: 'No Added Sugar' Contradicted"
+    penalty: 25
+    description: "Product claims 'no added sugar' or 'sugar free', but sugar sources or aliases are declared in ingredients or sugar sources list."
+    check: "misleading_claim_no_added_sugar"
+
+  - id: "fssai_license_missing"
+    severity: "MEDIUM"
+    category: "regulatory"
+    title: "FSSAI License Not Found"
+    penalty: 15
+    description: "Mandatory 14-digit FSSAI license / registration mark is not visible or declared on the packaging."
+    check: "fssai_license_missing"
+
+  - id: "veg_nonveg_mark_missing"
+    severity: "MEDIUM"
+    category: "regulatory"
+    title: "Veg/Non-Veg Mark Missing"
+    penalty: 10
+    description: "Mandatory FSSAI green (vegetarian) or brown (non-vegetarian) dot indicator is not clearly detected on the packaging."
+    check: "veg_nonveg_mark_missing"
+
+  - id: "allergen_statement_missing"
+    severity: "MEDIUM"
+    category: "regulatory"
+    title: "Allergen Statement Undeclared"
+    penalty: 10
+    description: "No allergen declaration found. FSSAI requires explicit declaration of common allergens or 'Contains: None'."
+    check: "allergen_statement_missing"
+
+  - id: "serving_without_per_100g"
+    severity: "LOW"
+    category: "transparency"
+    title: "Per-Serving Shown but Per-100g Missing"
+    penalty: 5
+    description: "Nutrition is provided per serving only, omitting standard per-100g values needed for fair product comparison."
+    check: "serving_without_per_100g"

@@ -1,0 +1,41 @@
+{
+  "product_name": "Organic Nut & Seed Muesli",
+  "serving_size_g": 40.0,
+  "per_100g": {
+    "energy_kcal": 390.0,
+    "protein_g": 14.0,
+    "carbohydrate_g": 58.0,
+    "total_sugar_g": 4.5,
+    "added_sugar_g": 0.0,
+    "total_fat_g": 7.5,
+    "saturated_fat_g": 1.2,
+    "trans_fat_g": 0.0,
+    "sodium_mg": 85.0,
+    "fibre_g": 9.5
+  },
+  "ingredients": [
+    "Rolled Oats (60%)",
+    "Almonds (10%)",
+    "Pumpkin Seeds (10%)",
+    "Chia Seeds",
+    "Wheat Flakes"
+  ],
+  "sugar_sources": [],
+  "fat_sources": [
+    "Almonds",
+    "Pumpkin Seeds"
+  ],
+  "allergens_declared": [
+    "Contains Nuts and Gluten"
+  ],
+  "fssai_license_present": true,
+  "veg_nonveg_mark": "green",
+  "claims": [
+    "100% Whole Grain",
+    "No Added Sugar",
+    "High Protein"
+  ],
+  "expiry_or_best_before_present": true,
+  "confidence": 0.98,
+  "unreadable_fields": []
+}
