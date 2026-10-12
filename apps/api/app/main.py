@@ -143,22 +143,32 @@ async def analyze_label(
             detail="Uploaded file is empty.",
         )
 
-    result = await app.state.service.analyze_image(
-        image_bytes=image_bytes,
-        content_type=file.content_type,
-        preset=preset,
-    )
+    try:
+        result = await app.state.service.analyze_image(
+            image_bytes=image_bytes,
+            content_type=file.content_type,
+            preset=preset,
+        )
 
-    # Track metrics
-    SCANS_PROCESSED.labels(
-        provider=settings.llm_provider,
-        grade=result.score.grade,
-    ).inc()
+        # Track metrics
+        SCANS_PROCESSED.labels(
+            provider=settings.llm_provider,
+            grade=result.score.grade,
+        ).inc()
 
-    for rf in result.red_flags:
-        RED_FLAGS_TRIGGERED.labels(rule_id=rf.id, severity=rf.severity).inc()
+        for rf in result.red_flags:
+            RED_FLAGS_TRIGGERED.labels(rule_id=rf.id, severity=rf.severity).inc()
 
-    return result
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{type(e).__name__}: {str(e)}",
+        )
 
 
 @app.get("/api/scans/{scan_id}", response_model=AnalysisResult, tags=["Analysis"])
