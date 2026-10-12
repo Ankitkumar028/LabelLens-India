@@ -56,6 +56,31 @@ class RulesEngine:
 
     def evaluate(self, extraction: LabelExtraction) -> Tuple[List[RedFlag], ScoreDetails]:
         """Evaluate extraction and produce red flags and score."""
+        is_invalid_image = (
+            "not_a_food_label" in extraction.unreadable_fields
+            or (extraction.confidence == 0.0 and extraction.per_100g is None and not extraction.ingredients)
+        )
+        if is_invalid_image:
+            flag = RedFlag(
+                id="not_a_food_label",
+                severity=Severity.CRITICAL,
+                category="validation",
+                title="No Food Label Detected",
+                description="The uploaded photo does not contain a packaged food label, nutrition table, or ingredients list. Please upload a clear photo of the packaging.",
+                penalty=100,
+            )
+            score_details = ScoreDetails(
+                value=0,
+                grade="RED",
+                grade_description="Invalid or non-food image. Please upload a food packaging label.",
+                breakdown=ScoreBreakdown(
+                    base_score=100.0,
+                    rule_penalties=-100.0,
+                    nutrient_adjustments=0.0,
+                ),
+            )
+            return [flag], score_details
+
         red_flags: List[RedFlag] = []
         total_penalties = 0
 

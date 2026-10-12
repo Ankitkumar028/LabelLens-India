@@ -145,11 +145,26 @@ class MockLLMProvider(LLMProvider):
         mime_type: str = "image/jpeg",
         preset: Optional[str] = None,
     ) -> LabelExtraction:
-        """Return preset or default mock label extraction."""
-        key = preset or self.default_preset
-        if key in self.presets:
-            return self.presets[key]
-        return self.presets[self.default_preset]
+        """Return preset or default mock label extraction with explicit simulation tag."""
+        if preset and preset in self.presets:
+            return self.presets[preset]
+
+        base = self.presets[self.default_preset]
+        return LabelExtraction(
+            product_name="[Simulated Mock Scan] Sample Biscuit Profile",
+            serving_size_g=base.serving_size_g,
+            per_100g=base.per_100g,
+            ingredients=base.ingredients,
+            sugar_sources=base.sugar_sources,
+            fat_sources=base.fat_sources,
+            allergens_declared=base.allergens_declared,
+            fssai_license_present=base.fssai_license_present,
+            veg_nonveg_mark=base.veg_nonveg_mark,
+            claims=["Mock Simulation Mode (Add GEMINI_API_KEY for Real Vision AI)"],
+            expiry_or_best_before_present=base.expiry_or_best_before_present,
+            confidence=0.5,
+            unreadable_fields=["offline_mock_simulation"],
+        )
 
     async def health_check(self) -> Dict[str, Any]:
         return {

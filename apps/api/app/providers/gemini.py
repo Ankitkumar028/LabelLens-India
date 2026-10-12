@@ -55,6 +55,12 @@ Follow these strict rules:
    - allergens_declared: list allergens if a "Contains..." statement is present; return null if no allergen statement exists at all.
 7. CLAIMS: Extract all packaging marketing claims like "No Added Sugar", "High Protein", "100% Real", "Zero Trans Fat".
 8. UNREADABLE: If fields are blurred or cut off, list their names in "unreadable_fields".
+9. NON-FOOD IMAGES: If the image does NOT contain a food packaging label, nutrition table, or ingredient list (e.g. human hand, face, body part, clothing, furniture, room, or unrelated object):
+   - Set "product_name": null
+   - Set "per_100g": null
+   - Set "ingredients": []
+   - Set "confidence": 0.0
+   - Set "unreadable_fields": ["not_a_food_label"]
 """
 
 
