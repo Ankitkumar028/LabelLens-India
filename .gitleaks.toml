@@ -1,0 +1,18 @@
+title = "LabelLens India Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow test fixtures and environment examples"
+paths = [
+    '''\.env\.example''',
+    '''apps/api/tests/fixtures/.*''',
+    '''apps/api/tests/.*''',
+    '''apps/web/src/test/.*''',
+]
+regexes = [
+    '''dummy_bytes''',
+    '''mock_valid_key''',
+    '''test_key''',
+]
