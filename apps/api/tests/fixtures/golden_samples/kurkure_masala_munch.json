@@ -1,0 +1,47 @@
+{
+  "id": "kurkure_masala_munch",
+  "category": "snacks",
+  "expected_grade": "AMBER",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Kurkure Masala Munch Corn Puffs",
+    "serving_size_g": 30.0,
+    "per_100g": {
+      "energy_kcal": 558.0,
+      "protein_g": 6.0,
+      "carbohydrate_g": 54.0,
+      "total_sugar_g": 2.5,
+      "added_sugar_g": 1.0,
+      "total_fat_g": 35.0,
+      "saturated_fat_g": 15.0,
+      "trans_fat_g": 0.1,
+      "sodium_mg": 920.0,
+      "fibre_g": 2.0
+    },
+    "ingredients": [
+      "Rice Meal",
+      "Edible Vegetable Oil (Palmolein)",
+      "Corn Meal",
+      "Gram Meal",
+      "Spices & Condiments",
+      "Salt"
+    ],
+    "sugar_sources": [
+      "Sugar"
+    ],
+    "fat_sources": [
+      "Palmolein Oil"
+    ],
+    "allergens_declared": [
+      "Contains Soy and Milk Products"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Tedha Hai Par Mera Hai"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.97,
+    "unreadable_fields": []
+  }
+}

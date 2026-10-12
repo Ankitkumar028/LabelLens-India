@@ -1,0 +1,48 @@
+{
+  "id": "maggi_2_minute_noodles",
+  "category": "snacks",
+  "expected_grade": "GREEN",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Maggi 2-Minute Masala Instant Noodles",
+    "serving_size_g": 70.0,
+    "per_100g": {
+      "energy_kcal": 427.0,
+      "protein_g": 8.0,
+      "carbohydrate_g": 63.5,
+      "total_sugar_g": 2.2,
+      "added_sugar_g": 1.2,
+      "total_fat_g": 15.7,
+      "saturated_fat_g": 6.8,
+      "trans_fat_g": 0.1,
+      "sodium_mg": 980.0,
+      "fibre_g": 3.6
+    },
+    "ingredients": [
+      "Refined Wheat Flour",
+      "Palm Oil",
+      "Iodised Salt",
+      "Wheat Gluten",
+      "Hydrolysed Groundnut Protein",
+      "Mixed Spices"
+    ],
+    "sugar_sources": [
+      "Sugar"
+    ],
+    "fat_sources": [
+      "Palm Oil"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Peanuts"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Taste of India",
+      "Iron Fortified"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.98,
+    "unreadable_fields": []
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "bourbon_chocolate_cream",
+  "category": "biscuits",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "trans_fat_undeclared_or_hydrogenated"
+  ],
+  "ground_truth": {
+    "product_name": "Bourbon Rich Chocolate Biscuit",
+    "serving_size_g": 30.0,
+    "per_100g": {
+      "energy_kcal": 490.0,
+      "protein_g": 5.2,
+      "carbohydrate_g": 73.0,
+      "total_sugar_g": 38.0,
+      "added_sugar_g": 35.0,
+      "total_fat_g": 20.0,
+      "saturated_fat_g": 9.5,
+      "trans_fat_g": 0.2,
+      "sodium_mg": 210.0,
+      "fibre_g": 1.2
+    },
+    "ingredients": [
+      "Refined Wheat Flour",
+      "Sugar",
+      "Hydrogenated Vegetable Fat",
+      "Cocoa Powder",
+      "Dextrose"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Dextrose"
+    ],
+    "fat_sources": [
+      "Hydrogenated Vegetable Fat"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Soy"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Real Chocolate Cream"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.97,
+    "unreadable_fields": []
+  }
+}

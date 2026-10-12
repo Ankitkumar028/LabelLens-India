@@ -1,0 +1,51 @@
+{
+  "id": "marie_gold_tea_biscuit",
+  "category": "biscuits",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "added_sugar_undeclared_high_total",
+    "sugar_in_first_three_ingredients"
+  ],
+  "ground_truth": {
+    "product_name": "Britannia Marie Gold Biscuits",
+    "serving_size_g": 22.0,
+    "per_100g": {
+      "energy_kcal": 445.0,
+      "protein_g": 8.0,
+      "carbohydrate_g": 79.0,
+      "total_sugar_g": 21.0,
+      "added_sugar_g": null,
+      "total_fat_g": 11.0,
+      "saturated_fat_g": 5.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 310.0,
+      "fibre_g": 2.5
+    },
+    "ingredients": [
+      "Refined Wheat Flour",
+      "Sugar",
+      "Refined Palm Oil",
+      "Milk Solids",
+      "Invert Sugar"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Invert Sugar"
+    ],
+    "fat_sources": [
+      "Refined Palm Oil"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Milk"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Tea Time Favourite",
+      "Contains 10 Essential Vitamins"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.96,
+    "unreadable_fields": []
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "kelloggs_chocos_cereal",
+  "category": "cereals",
+  "expected_grade": "AMBER",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "hidden_sugar_aliases"
+  ],
+  "ground_truth": {
+    "product_name": "Kellogg's Chocos Chocolate Wheat Cereal",
+    "serving_size_g": 30.0,
+    "per_100g": {
+      "energy_kcal": 382.0,
+      "protein_g": 8.6,
+      "carbohydrate_g": 82.5,
+      "total_sugar_g": 29.5,
+      "added_sugar_g": 28.0,
+      "total_fat_g": 2.5,
+      "saturated_fat_g": 1.1,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 340.0,
+      "fibre_g": 4.5
+    },
+    "ingredients": [
+      "Wheat Solids (54%)",
+      "Sugar",
+      "Cocoa Solids",
+      "Malt Extract",
+      "Iodised Salt",
+      "Minerals"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Malt Extract"
+    ],
+    "fat_sources": [],
+    "allergens_declared": [
+      "Contains Wheat and Barley"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Rich in Calcium & Protein",
+      "Makes Milk Chocolaty"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.98,
+    "unreadable_fields": []
+  }
+}

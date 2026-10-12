@@ -1,0 +1,38 @@
+{
+  "id": "unbranded_local_bhujia_incomplete",
+  "category": "regulatory_fail",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "nutrition_table_missing_or_incomplete",
+    "fssai_license_missing",
+    "veg_nonveg_mark_missing",
+    "allergen_statement_missing"
+  ],
+  "ground_truth": {
+    "product_name": "Bikaner Local Sev Bhujia",
+    "serving_size_g": 50.0,
+    "per_100g": null,
+    "ingredients": [
+      "Besan",
+      "Oil",
+      "Mirch",
+      "Namak"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Oil"
+    ],
+    "allergens_declared": null,
+    "fssai_license_present": false,
+    "veg_nonveg_mark": "none",
+    "claims": [
+      "Desi Swaad"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.7,
+    "unreadable_fields": [
+      "nutrition_table",
+      "fssai_number"
+    ]
+  }
+}

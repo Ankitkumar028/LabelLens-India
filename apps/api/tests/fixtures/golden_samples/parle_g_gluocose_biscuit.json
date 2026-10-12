@@ -1,0 +1,51 @@
+{
+  "id": "parle_g_gluocose_biscuit",
+  "category": "biscuits",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "hidden_sugar_aliases"
+  ],
+  "ground_truth": {
+    "product_name": "Parle-G Original Glucose Biscuits",
+    "serving_size_g": 25.0,
+    "per_100g": {
+      "energy_kcal": 454.0,
+      "protein_g": 6.7,
+      "carbohydrate_g": 78.2,
+      "total_sugar_g": 26.5,
+      "added_sugar_g": 25.0,
+      "total_fat_g": 12.8,
+      "saturated_fat_g": 6.1,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 280.0,
+      "fibre_g": 1.5
+    },
+    "ingredients": [
+      "Refined Wheat Flour",
+      "Sugar",
+      "Edible Vegetable Oil",
+      "Invert Sugar Syrup",
+      "Raising Agents"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Invert Sugar Syrup"
+    ],
+    "fat_sources": [
+      "Edible Vegetable Oil (Palm)"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Milk"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "G for Genius",
+      "Energy Food"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.98,
+    "unreadable_fields": []
+  }
+}

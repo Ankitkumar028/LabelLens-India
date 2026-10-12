@@ -1,0 +1,51 @@
+{
+  "id": "soan_papdi_sweet",
+  "category": "sweets",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "trans_fat_undeclared_or_hydrogenated"
+  ],
+  "ground_truth": {
+    "product_name": "Haldiram's Traditional Soan Papdi",
+    "serving_size_g": 40.0,
+    "per_100g": {
+      "energy_kcal": 512.0,
+      "protein_g": 4.5,
+      "carbohydrate_g": 68.0,
+      "total_sugar_g": 48.0,
+      "added_sugar_g": 45.0,
+      "total_fat_g": 24.5,
+      "saturated_fat_g": 12.0,
+      "trans_fat_g": 0.3,
+      "sodium_mg": 40.0,
+      "fibre_g": 1.0
+    },
+    "ingredients": [
+      "Sugar",
+      "Refined Wheat Flour",
+      "Gram Flour",
+      "Vanaspati (Hydrogenated Vegetable Oil)",
+      "Cardamom",
+      "Almonds"
+    ],
+    "sugar_sources": [
+      "Sugar"
+    ],
+    "fat_sources": [
+      "Vanaspati (Hydrogenated Vegetable Oil)"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Nuts"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Festive Sweets",
+      "Rich Pistachio & Almond"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.95,
+    "unreadable_fields": []
+  }
+}

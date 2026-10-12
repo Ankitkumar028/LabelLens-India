@@ -1,0 +1,40 @@
+{
+  "id": "quaker_plain_rolled_oats",
+  "category": "cereals",
+  "expected_grade": "GREEN",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Quaker 100% Wholegrain Rolled Oats",
+    "serving_size_g": 40.0,
+    "per_100g": {
+      "energy_kcal": 407.0,
+      "protein_g": 11.8,
+      "carbohydrate_g": 68.5,
+      "total_sugar_g": 0.5,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 9.5,
+      "saturated_fat_g": 2.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 9.0,
+      "fibre_g": 10.5
+    },
+    "ingredients": [
+      "100% Rolled Oats"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [],
+    "allergens_declared": [
+      "May contain traces of wheat"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "100% Whole Grain",
+      "Helps Manage Weight",
+      "Zero Added Sugar"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.99,
+    "unreadable_fields": []
+  }
+}

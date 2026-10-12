@@ -1,0 +1,40 @@
+{
+  "id": "lays_classic_salted_chips",
+  "category": "snacks",
+  "expected_grade": "GREEN",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Lay's Classic Salted Potato Chips",
+    "serving_size_g": 28.0,
+    "per_100g": {
+      "energy_kcal": 542.0,
+      "protein_g": 7.0,
+      "carbohydrate_g": 52.0,
+      "total_sugar_g": 0.5,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 34.0,
+      "saturated_fat_g": 13.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 550.0,
+      "fibre_g": 3.8
+    },
+    "ingredients": [
+      "Potato",
+      "Edible Vegetable Oil (Palmolein)",
+      "Iodised Salt (1.5%)"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Palmolein Oil"
+    ],
+    "allergens_declared": [],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "100% Farm Grown Potatoes"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.99,
+    "unreadable_fields": []
+  }
+}

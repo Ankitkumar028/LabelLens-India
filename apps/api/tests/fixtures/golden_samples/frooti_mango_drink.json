@@ -1,0 +1,46 @@
+{
+  "id": "frooti_mango_drink",
+  "category": "beverages",
+  "expected_grade": "AMBER",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "hidden_sugar_aliases"
+  ],
+  "ground_truth": {
+    "product_name": "Frooti Fresh 'N' Juicy Mango Drink",
+    "serving_size_g": 150.0,
+    "per_100g": {
+      "energy_kcal": 65.0,
+      "protein_g": 0.0,
+      "carbohydrate_g": 16.2,
+      "total_sugar_g": 15.5,
+      "added_sugar_g": 14.5,
+      "total_fat_g": 0.0,
+      "saturated_fat_g": 0.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 25.0,
+      "fibre_g": 0.0
+    },
+    "ingredients": [
+      "Water",
+      "Mango Pulp (19.5%)",
+      "Sugar",
+      "Liquid Glucose",
+      "Acidity Regulator"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Liquid Glucose"
+    ],
+    "fat_sources": [],
+    "allergens_declared": [],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Made with Real Mango Pulp"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.98,
+    "unreadable_fields": []
+  }
+}

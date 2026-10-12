@@ -1,0 +1,45 @@
+{
+  "id": "thums_up_cola",
+  "category": "beverages",
+  "expected_grade": "AMBER",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients"
+  ],
+  "ground_truth": {
+    "product_name": "Thums Up Carbonated Soft Drink",
+    "serving_size_g": 250.0,
+    "per_100g": {
+      "energy_kcal": 40.0,
+      "protein_g": 0.0,
+      "carbohydrate_g": 10.0,
+      "total_sugar_g": 10.0,
+      "added_sugar_g": 10.0,
+      "total_fat_g": 0.0,
+      "saturated_fat_g": 0.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 15.0,
+      "fibre_g": 0.0
+    },
+    "ingredients": [
+      "Carbonated Water",
+      "Sugar",
+      "Acidity Regulator (INS 338)",
+      "Colour (INS 150d)",
+      "Flavours",
+      "Caffeine"
+    ],
+    "sugar_sources": [
+      "Sugar"
+    ],
+    "fat_sources": [],
+    "allergens_declared": [],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Taste the Thunder"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.99,
+    "unreadable_fields": []
+  }
+}

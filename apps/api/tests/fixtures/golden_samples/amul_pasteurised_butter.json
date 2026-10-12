@@ -1,0 +1,41 @@
+{
+  "id": "amul_pasteurised_butter",
+  "category": "dairy",
+  "expected_grade": "RED",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Amul Pasteurised Butter",
+    "serving_size_g": 10.0,
+    "per_100g": {
+      "energy_kcal": 722.0,
+      "protein_g": 0.6,
+      "carbohydrate_g": 0.0,
+      "total_sugar_g": 0.0,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 80.0,
+      "saturated_fat_g": 53.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 830.0,
+      "fibre_g": 0.0
+    },
+    "ingredients": [
+      "Butter",
+      "Common Salt"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Butter Fat (80%)"
+    ],
+    "allergens_declared": [
+      "Contains Milk"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Utterly Butterly Delicious"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.99,
+    "unreadable_fields": []
+  }
+}

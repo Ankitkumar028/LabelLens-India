@@ -1,0 +1,49 @@
+{
+  "id": "yoga_bar_protein_muesli",
+  "category": "cereals",
+  "expected_grade": "GREEN",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Yoga Bar Dark Chocolate + Cranberry Protein Muesli",
+    "serving_size_g": 50.0,
+    "per_100g": {
+      "energy_kcal": 415.0,
+      "protein_g": 18.0,
+      "carbohydrate_g": 56.0,
+      "total_sugar_g": 6.0,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 11.0,
+      "saturated_fat_g": 2.5,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 70.0,
+      "fibre_g": 8.0
+    },
+    "ingredients": [
+      "Whole Rolled Oats (50%)",
+      "Raw Whey Protein Isolate",
+      "Chia Seeds",
+      "Pumpkin Seeds",
+      "Almonds",
+      "Cranberries"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Almonds",
+      "Chia Seeds",
+      "Pumpkin Seeds"
+    ],
+    "allergens_declared": [
+      "Contains Milk and Nuts"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "High Protein 18g",
+      "No Added Sugar",
+      "100% Clean Ingredients"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.98,
+    "unreadable_fields": []
+  }
+}

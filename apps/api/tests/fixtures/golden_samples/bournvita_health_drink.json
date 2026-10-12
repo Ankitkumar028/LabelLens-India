@@ -1,0 +1,53 @@
+{
+  "id": "bournvita_health_drink",
+  "category": "beverages",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "sugar_in_first_three_ingredients",
+    "hidden_sugar_aliases"
+  ],
+  "ground_truth": {
+    "product_name": "Cadbury Bournvita Chocolate Nutrition Drink",
+    "serving_size_g": 20.0,
+    "per_100g": {
+      "energy_kcal": 384.0,
+      "protein_g": 7.0,
+      "carbohydrate_g": 85.0,
+      "total_sugar_g": 49.8,
+      "added_sugar_g": 32.2,
+      "total_fat_g": 1.8,
+      "saturated_fat_g": 0.9,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 160.0,
+      "fibre_g": 2.5
+    },
+    "ingredients": [
+      "Cereal Extract",
+      "Sugar",
+      "Cocoa Solids",
+      "Liquid Glucose",
+      "Maltodextrin",
+      "Emulsifiers",
+      "Vitamins"
+    ],
+    "sugar_sources": [
+      "Sugar",
+      "Liquid Glucose",
+      "Maltodextrin",
+      "Cereal Extract"
+    ],
+    "fat_sources": [],
+    "allergens_declared": [
+      "Contains Milk and Gluten"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Inner Strength",
+      "Scientifically Designed Formula"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.97,
+    "unreadable_fields": []
+  }
+}

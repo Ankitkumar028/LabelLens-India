@@ -1,0 +1,45 @@
+{
+  "id": "haldirams_aloo_bhujia",
+  "category": "snacks",
+  "expected_grade": "AMBER",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Haldiram's Nagpur Aloo Bhujia",
+    "serving_size_g": 35.0,
+    "per_100g": {
+      "energy_kcal": 582.0,
+      "protein_g": 8.5,
+      "carbohydrate_g": 43.0,
+      "total_sugar_g": 2.0,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 42.0,
+      "saturated_fat_g": 18.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 860.0,
+      "fibre_g": 3.0
+    },
+    "ingredients": [
+      "Potato Flakes",
+      "Edible Vegetable Oil (Palmolein)",
+      "Gram Flour",
+      "Tepary Beans Flour",
+      "Iodised Salt",
+      "Spices and Condiments"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Palmolein Oil"
+    ],
+    "allergens_declared": [
+      "May contain traces of peanuts and gluten"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Chatpata Crispy Snack"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.96,
+    "unreadable_fields": []
+  }
+}

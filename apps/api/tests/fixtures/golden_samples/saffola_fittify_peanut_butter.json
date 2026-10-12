@@ -1,0 +1,42 @@
+{
+  "id": "saffola_fittify_peanut_butter",
+  "category": "spreads",
+  "expected_grade": "GREEN",
+  "expected_flags": [],
+  "ground_truth": {
+    "product_name": "Saffola FITTIFY 100% Pure Peanut Butter Unsweetened",
+    "serving_size_g": 32.0,
+    "per_100g": {
+      "energy_kcal": 625.0,
+      "protein_g": 26.0,
+      "carbohydrate_g": 20.0,
+      "total_sugar_g": 3.0,
+      "added_sugar_g": 0.0,
+      "total_fat_g": 50.0,
+      "saturated_fat_g": 8.0,
+      "trans_fat_g": 0.0,
+      "sodium_mg": 15.0,
+      "fibre_g": 6.5
+    },
+    "ingredients": [
+      "100% Roasted Peanuts"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Peanut Oil"
+    ],
+    "allergens_declared": [
+      "Contains Peanuts"
+    ],
+    "fssai_license_present": true,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "100% Roasted Peanuts",
+      "No Added Sugar",
+      "Zero Hydrogenated Oils"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.99,
+    "unreadable_fields": []
+  }
+}

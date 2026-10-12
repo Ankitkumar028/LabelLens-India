@@ -1,0 +1,40 @@
+{
+  "id": "street_packaged_khakhra_no_fssai",
+  "category": "regulatory_fail",
+  "expected_grade": "RED",
+  "expected_flags": [
+    "nutrition_table_missing_or_incomplete",
+    "fssai_license_missing"
+  ],
+  "ground_truth": {
+    "product_name": "Gujarati Masala Khakhra Handcrafted",
+    "serving_size_g": 40.0,
+    "per_100g": null,
+    "ingredients": [
+      "Whole Wheat Flour",
+      "Peanut Oil",
+      "Turmeric",
+      "Ajwain",
+      "Salt"
+    ],
+    "sugar_sources": [],
+    "fat_sources": [
+      "Peanut Oil"
+    ],
+    "allergens_declared": [
+      "Contains Wheat and Peanuts"
+    ],
+    "fssai_license_present": false,
+    "veg_nonveg_mark": "green",
+    "claims": [
+      "Crispy Roasted",
+      "Healthy Snack"
+    ],
+    "expiry_or_best_before_present": true,
+    "confidence": 0.85,
+    "unreadable_fields": [
+      "per_100g_table",
+      "fssai_license"
+    ]
+  }
+}
