@@ -6,9 +6,11 @@ const BASE_URL = '';
 
 export async function checkHealth() {
   try {
-    const res = await fetch(`${BASE_URL}/health`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const res = await fetch(`${BASE_URL}/api/health`);
+    if (res.ok) return await res.json();
+    const fallbackRes = await fetch(`${BASE_URL}/health`);
+    if (fallbackRes.ok) return await fallbackRes.json();
+    throw new Error(`HTTP ${res.status}`);
   } catch (err) {
     return { status: 'error', message: err.message };
   }
