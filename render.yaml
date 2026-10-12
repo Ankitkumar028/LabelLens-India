@@ -1,0 +1,39 @@
+services:
+  # Backend FastAPI Service (Free Tier)
+  - type: web
+    name: labellens-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: ./apps/api
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8000
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: RULES_CONFIG_PATH
+        value: /app/config/rules.yaml
+      - key: ENVIRONMENT
+        value: production
+
+  # Frontend Web Service (Free Tier)
+  - type: web
+    name: labellens-web
+    runtime: docker
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: ./apps/web
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: labellens-api
+          property: host

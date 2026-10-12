@@ -1,0 +1,114 @@
+name: AI DevOps Reviewer & Incident Explainer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["CI Pipeline - Lint, Test, Security & Docker"]
+    types: [completed]
+
+jobs:
+  # 1. AI PR Reviewer
+  ai-pr-review:
+    name: AI Pull Request Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install HTTPX
+        run: pip install httpx
+
+      - name: Generate PR Git Diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.patch
+          echo "Generated diff with $(wc -l < pr_diff.patch) lines."
+
+      - name: Run AI PR Reviewer
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/ai_pr_reviewer.py --diff-file pr_diff.patch --output-file review_output.md
+
+      - name: Post or Update PR Review Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reviewBody = fs.readFileSync('review_output.md', 'utf8');
+            const tag = '<!-- label-lens-ai-pr-review -->';
+            const fullBody = `${tag}\n${reviewBody}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(tag));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+              console.log('Updated existing AI review comment.');
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+              console.log('Created new AI review comment.');
+            }
+
+  # 2. AI CI Failure Explainer
+  ai-ci-failure-explainer:
+    name: AI CI Failure Root Cause & Remediation
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install HTTPX
+        run: pip install httpx
+
+      - name: Synthesize Failure Logs
+        run: |
+          echo "CI Workflow '${{ github.event.workflow_run.name }}' failed on commit ${{ github.event.workflow_run.head_sha }}." > ci_error.log
+          echo "Run URL: ${{ github.event.workflow_run.html_url }}" >> ci_error.log
+          echo "Triggered by: ${{ github.event.workflow_run.event }}" >> ci_error.log
+
+      - name: Run AI Failure Explainer
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/ai_failure_explainer.py --log-file ci_error.log --output-file failure_diagnosis.md
+
+      - name: Post Failure Explanation to Job Summary
+        run: |
+          cat failure_diagnosis.md >> $GITHUB_STEP_SUMMARY

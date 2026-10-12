@@ -1,0 +1,24 @@
+# Cloudflare Tunnel Configuration (cloudflared)
+# Exposes LabelLens Docker Compose stack securely to a custom domain with free SSL without opening router ports.
+
+tunnel: labellens-production
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  # Route API traffic to internal Docker Compose API service
+  - hostname: api.labellens.in
+    service: http://api:8000
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: true
+
+  # Route Web frontend traffic to internal Docker Compose Web service
+  - hostname: labellens.in
+    service: http://web:80
+
+  # Route Grafana observability dashboard to secure subdomain
+  - hostname: monitor.labellens.in
+    service: http://grafana:3000
+
+  # Catch-all rule (required by Cloudflare)
+  - service: http_status:404

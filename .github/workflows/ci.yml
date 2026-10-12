@@ -172,11 +172,20 @@ jobs:
         run: |
           curl -f http://localhost:3000/health
 
+      - name: Verify Prometheus /-/healthy Endpoint
+        run: |
+          curl -f http://localhost:9090/-/healthy
+
+      - name: Verify Grafana /api/health Endpoint
+        run: |
+          curl -f http://localhost:3001/api/health
+
       - name: Verify Reverse Proxy Analyze Flow
         run: |
           # Generate small test JPEG
           python3 -c "from PIL import Image; img = Image.new('RGB', (100, 100), color=(0, 255, 0)); img.save('smoke_test.jpg')"
           curl -f -X POST -F "file=@smoke_test.jpg" -F "preset=healthy_protein_muesli" http://localhost:3000/api/analyze
+
 
       - name: Teardown Docker Compose
         if: always()
