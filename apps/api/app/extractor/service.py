@@ -82,8 +82,10 @@ class LabelAnalysisService:
         cleaned_bytes, mime_type = self.validate_and_process_image(image_bytes, content_type)
 
         # AI extraction
-        if hasattr(self.provider, "extract") and self.provider.name == "mock" and preset:
-            extraction: LabelExtraction = await self.provider.extract(cleaned_bytes, mime_type, preset=preset)
+        if preset:
+            from app.providers.mock import MockLLMProvider
+            mock = MockLLMProvider()
+            extraction = mock.presets.get(preset, mock.presets[mock.default_preset])
         else:
             extraction = await self.provider.extract(cleaned_bytes, mime_type)
 
