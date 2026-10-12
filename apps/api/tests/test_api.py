@@ -59,3 +59,16 @@ def test_get_nonexistent_scan_returns_404(client: TestClient):
     """GET /api/scans/{id} with unknown ID returns 404 Not Found."""
     response = client.get("/api/scans/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404
+
+
+def test_score_endpoint_recalculates_values(client: TestClient, load_fixture):
+    """POST /api/score accepts edited extraction and returns updated score/red flags."""
+    muesli = load_fixture("protein_muesli.json")
+    response = client.post("/api/score", json=muesli.model_dump())
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["product_name"] == "Organic Nut & Seed Muesli"
+    assert data["score"]["grade"] == "GREEN"
+    assert data["score"]["value"] >= 70
+

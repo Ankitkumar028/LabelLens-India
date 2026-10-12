@@ -1,16 +1,17 @@
-"""LabelLens India - Core FastAPI Application."""
-
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 import time
 from typing import Optional
+import uuid
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 from app.config import settings
-from app.extractor.service import LabelAnalysisService
+from app.extractor.service import LabelAnalysisService, SCAN_STORE
 from app.models.analysis import AnalysisResult
+from app.models.extraction import LabelExtraction
 from app.providers.factory import get_llm_provider
 from app.rules.engine import RulesEngine
 
@@ -171,3 +172,27 @@ async def get_scan(scan_id: str):
             detail=f"Scan with ID '{scan_id}' not found.",
         )
     return scan
+
+
+@app.post("/api/score", response_model=AnalysisResult, tags=["Analysis"])
+async def score_label(extraction: LabelExtraction):
+    """Recalculate score and red flags for edited or corrected label values."""
+    if not hasattr(app.state, "rules_engine"):
+        rules_path = settings.resolve_rules_path()
+        app.state.rules_engine = RulesEngine(rules_path)
+
+    red_flags, score_details = app.state.rules_engine.evaluate(extraction)
+    scan_id = str(uuid.uuid4())
+    result = AnalysisResult(
+        scan_id=scan_id,
+        product_name=extraction.product_name,
+        score=score_details,
+        red_flags=red_flags,
+        extraction=extraction,
+        disclaimer=app.state.rules_engine.disclaimer,
+        processing_time_ms=1.0,
+        created_at=datetime.now(timezone.utc).isoformat(),
+    )
+    SCAN_STORE[scan_id] = result
+    return result
+
