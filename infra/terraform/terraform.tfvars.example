@@ -1,0 +1,8 @@
+# DigitalOcean API token (or export DIGITALOCEAN_TOKEN in your shell)
+do_token = "dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+region        = "tor1"
+droplet_size  = "gpu-mi300x"
+droplet_image = "ubuntu-22-04-x64"
+ssh_keys      = ["your-ssh-key-fingerprint"]
+environment   = "production"

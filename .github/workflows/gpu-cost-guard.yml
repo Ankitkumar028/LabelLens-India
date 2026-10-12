@@ -1,0 +1,45 @@
+name: GPU Cost Guard - Zombie Instance Terminator
+
+on:
+  schedule:
+    # Run every 6 hours to check if GPU droplets are accidentally left running
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      auto_destroy:
+        description: 'Auto destroy running GPU droplets'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  check-and-guard-gpu:
+    name: Check Active GPU Droplets & Enforce Teardown
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        if: env.DIGITALOCEAN_ACCESS_TOKEN != ''
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
+
+      - name: Inspect DigitalOcean for Active GPU Droplets
+        if: env.DIGITALOCEAN_ACCESS_TOKEN != ''
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
+        run: |
+          echo "Scanning for running droplets with tag 'labellens'..."
+          RUNNING=$(doctl compute droplet list --tag-name "labellens" --format ID,Name,Status,PriceMonthly --no-header || true)
+          if [ -n "$RUNNING" ]; then
+            echo "⚠️ ALERT: Found active GPU droplets that may incur hourly charges:"
+            echo "$RUNNING"
+            if [ "${{ github.event.inputs.auto_destroy }}" = "true" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+              echo "Destroying GPU droplets to protect AMD credits / budget..."
+              ./scripts/teardown_gpu.sh
+            fi
+          else
+            echo "✅ Clean: No active GPU droplets found. Zero ongoing cost."
+          fi
