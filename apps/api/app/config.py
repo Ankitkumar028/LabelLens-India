@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # Gemini API settings
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-flash-lite-latest"
 
     # vLLM API settings
     vllm_api_base: str = "http://localhost:8001/v1"

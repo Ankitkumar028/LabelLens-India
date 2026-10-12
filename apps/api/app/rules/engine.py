@@ -63,21 +63,22 @@ class RulesEngine:
         if is_invalid_image:
             flag = RedFlag(
                 id="not_a_food_label",
-                severity=Severity.CRITICAL,
-                category="validation",
-                title="No Food Label Detected",
+                severity="HIGH",
+                category="regulatory",
+                title="🚨 No Food Label Detected",
                 description="The uploaded photo does not contain a packaged food label, nutrition table, or ingredients list. Please upload a clear photo of the packaging.",
                 penalty=100,
+                details={"unreadable_fields": extraction.unreadable_fields},
             )
             score_details = ScoreDetails(
                 value=0,
                 grade="RED",
                 grade_description="Invalid or non-food image. Please upload a food packaging label.",
-                breakdown=ScoreBreakdown(
-                    base_score=100.0,
-                    rule_penalties=-100.0,
-                    nutrient_adjustments=0.0,
-                ),
+                breakdown={
+                    "base_score": 100,
+                    "rule_penalties": -100,
+                    "nutrient_adjustments": 0,
+                },
             )
             return [flag], score_details
 

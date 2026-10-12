@@ -64,12 +64,21 @@ Follow these strict rules:
 """
 
 
+FALLBACK_MODELS = [
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-3.8-flash",
+    "gemini-3-flash-preview",
+]
+
+
 class GeminiLLMProvider(LLMProvider):
     """Integrates with Google Gemini Vision API (free tier fallback)."""
 
-    def __init__(self, api_key: str = "", model_name: str = ""):
-        self.api_key = api_key or settings.gemini_api_key
-        self.model_name = model_name or settings.gemini_model or "gemini-1.5-flash"
+    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
+        self.api_key = settings.gemini_api_key if api_key is None else api_key
+        self.model_name = model_name or settings.gemini_model or "gemini-flash-lite-latest"
         self.timeout_seconds = 45.0
 
     @property
@@ -91,17 +100,20 @@ class GeminiLLMProvider(LLMProvider):
         return cleaned.strip()
 
     async def extract(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> LabelExtraction:
-        """Call Gemini Vision API to extract food label data with graceful fallback."""
-        is_dummy_key = not self.api_key or self.api_key.lower().strip() in (
-            "mock", "none", "dummy", "test", ""
-        )
-        if is_dummy_key:
+        """Call Gemini Vision API to extract food label data with multi-model fallback."""
+        if not self.api_key:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="GEMINI_API_KEY environment variable is not configured. Set GEMINI_API_KEY or use LLM_PROVIDER=mock.",
+            )
+
+        if self.api_key.lower().strip() in ("none", "dummy"):
             from app.providers.mock import MockLLMProvider
             mock = MockLLMProvider()
             return await mock.extract(image_bytes, mime_type)
 
         base64_image = base64.b64encode(image_bytes).decode("utf-8")
-        url = GEMINI_API_ENDPOINT.format(model=self.model_name)
+        models_to_try = [self.model_name] + [m for m in FALLBACK_MODELS if m != self.model_name]
         params = {"key": self.api_key}
 
         payload = {
@@ -124,38 +136,40 @@ class GeminiLLMProvider(LLMProvider):
             },
         }
 
+        any_429 = False
         async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
-            try:
-                response = await client.post(url, params=params, json=payload)
-            except Exception:
-                # Network or timeout failure — fallback to mock to keep demo alive
-                from app.providers.mock import MockLLMProvider
-                mock = MockLLMProvider()
-                return await mock.extract(image_bytes, mime_type)
+            for candidate_model in models_to_try:
+                url = GEMINI_API_ENDPOINT.format(model=candidate_model)
+                try:
+                    response = await client.post(url, params=params, json=payload)
+                    if response.status_code == 429:
+                        any_429 = True
+                        break
+                    if response.status_code == 200:
+                        data = response.json()
+                        candidates = data.get("candidates", [])
+                        if not candidates:
+                            continue
+                        content_parts = candidates[0].get("content", {}).get("parts", [])
+                        if not content_parts:
+                            continue
+                        raw_text = content_parts[0].get("text", "")
+                        cleaned_text = self._clean_json_response(raw_text)
+                        parsed_data = json.loads(cleaned_text)
+                        return LabelExtraction.model_validate(parsed_data)
+                except Exception:
+                    continue
 
-        if response.status_code != 200:
-            # API key invalid (400) or quota exceeded (429) — fallback to mock
-            from app.providers.mock import MockLLMProvider
-            mock = MockLLMProvider()
-            return await mock.extract(image_bytes, mime_type)
-
-        data = response.json()
-        try:
-            candidates = data.get("candidates", [])
-            if not candidates:
-                raise ValueError("Gemini returned no response candidates.")
-            content_parts = candidates[0].get("content", {}).get("parts", [])
-            if not content_parts:
-                raise ValueError("Gemini candidate contains no content parts.")
-            raw_text = content_parts[0].get("text", "")
-            cleaned_text = self._clean_json_response(raw_text)
-            parsed_data = json.loads(cleaned_text)
-            return LabelExtraction.model_validate(parsed_data)
-        except Exception as err:
+        if any_429:
             raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Failed to parse Gemini model output into valid extraction contract: {str(err)}",
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Gemini API rate limit exceeded. Please retry in a few moments or switch to mock provider.",
             )
+
+        # If all candidates fail or quota exceeded, fallback to mock to keep demo resilient
+        from app.providers.mock import MockLLMProvider
+        mock = MockLLMProvider()
+        return await mock.extract(image_bytes, mime_type)
 
     async def health_check(self) -> Dict[str, Any]:
         """Check provider status and API key configuration."""
