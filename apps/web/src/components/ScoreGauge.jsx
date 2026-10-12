@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ScoreGauge({ score, disclaimer }) {
+  const { t } = useLanguage();
   const [showBreakdown, setShowBreakdown] = useState(false);
   const { value, grade, grade_description, breakdown } = score;
 
@@ -12,16 +14,18 @@ export default function ScoreGauge({ score, disclaimer }) {
           color: '#10b981',
           bg: 'rgba(16, 185, 129, 0.1)',
           border: 'rgba(16, 185, 129, 0.3)',
-          label: 'Healthier Choice',
+          label: t('grade_green'),
           icon: CheckCircle,
+          desc: t('grade_green_desc'),
         };
       case 'AMBER':
         return {
           color: '#f59e0b',
           bg: 'rgba(245, 158, 11, 0.1)',
           border: 'rgba(245, 158, 11, 0.3)',
-          label: 'Moderate Caution',
+          label: t('grade_amber'),
           icon: AlertTriangle,
+          desc: t('grade_amber_desc'),
         };
       case 'RED':
       default:
@@ -29,8 +33,9 @@ export default function ScoreGauge({ score, disclaimer }) {
           color: '#ef4444',
           bg: 'rgba(239, 68, 68, 0.1)',
           border: 'rgba(239, 68, 68, 0.3)',
-          label: 'High Health Risk',
+          label: t('grade_red'),
           icon: AlertTriangle,
+          desc: t('grade_red_desc'),
         };
     }
   };
@@ -49,7 +54,7 @@ export default function ScoreGauge({ score, disclaimer }) {
     <div className="glass-panel" style={{ padding: '24px', textAlign: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-          LabelLens Health Score
+          {t('health_score')}
         </h2>
       </div>
 
@@ -114,12 +119,12 @@ export default function ScoreGauge({ score, disclaimer }) {
       }}>
         <Icon size={16} color={theme.color} />
         <span style={{ color: theme.color, fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.04em' }}>
-          {grade} — {theme.label}
+          {theme.label}
         </span>
       </div>
 
       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '380px', margin: '0 auto 16px auto' }}>
-        {grade_description}
+        {theme.desc}
       </p>
 
       {/* Breakdown Toggle */}
@@ -208,7 +213,7 @@ export default function ScoreGauge({ score, disclaimer }) {
         fontSize: '0.74rem',
       }}>
         <Info size={13} />
-        <span>{disclaimer || 'Informational only, not medical advice.'}</span>
+        <span>{disclaimer || t('disclaimer_text')}</span>
       </div>
     </div>
   );

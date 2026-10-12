@@ -163,4 +163,6 @@ AI_assisted_devOps/
 - Show the user the extracted values and let them correct them before scoring (OCR can be wrong).
 - Handle blurry images: return `unreadable_fields` + retake prompt.
 - Privacy: no accounts in v1, no image retention beyond N hours.
-- Future: barcode lookup (Open Food Facts), Hindi/Marathi UI, side-by-side product comparison.
+- Implemented: Barcode lookup with Open Food Facts API & offline Indian FMCG fallback dataset (`/api/barcode/{barcode}`, `/api/barcode/presets`).
+- Implemented: Multilingual UI localization supporting English, Hindi (हिंदी), and Marathi (मराठी) with persistent user preference.
+- Implemented: Side-by-side Product Comparison mode with battle presets, nutritional delta metrics, and FSSAI winner calculation.

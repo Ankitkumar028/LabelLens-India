@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, RefreshCw, CheckCircle, AlertCircle, FileEdit, Check } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function NutritionInspector({ extraction, onRecalculate, isUpdating }) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState(extraction);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -30,17 +32,18 @@ export default function NutritionInspector({ extraction, onRecalculate, isUpdati
   const per100g = formData.per_100g || {};
 
   const nutrientsList = [
-    { key: 'energy_kcal', label: 'Energy', unit: 'kcal' },
-    { key: 'protein_g', label: 'Protein', unit: 'g' },
-    { key: 'carbohydrate_g', label: 'Carbohydrates', unit: 'g' },
-    { key: 'total_sugar_g', label: 'Total Sugar', unit: 'g' },
-    { key: 'added_sugar_g', label: 'Added Sugar', unit: 'g' },
-    { key: 'total_fat_g', label: 'Total Fat', unit: 'g' },
-    { key: 'saturated_fat_g', label: 'Saturated Fat', unit: 'g' },
-    { key: 'trans_fat_g', label: 'Trans Fat', unit: 'g' },
-    { key: 'sodium_mg', label: 'Sodium', unit: 'mg' },
-    { key: 'fibre_g', label: 'Dietary Fibre', unit: 'g' },
+    { key: 'energy_kcal', label: t('nutrient_energy'), unit: 'kcal' },
+    { key: 'protein_g', label: t('nutrient_protein'), unit: 'g' },
+    { key: 'carbohydrate_g', label: t('nutrient_carbs'), unit: 'g' },
+    { key: 'total_sugar_g', label: t('nutrient_total_sugar'), unit: 'g' },
+    { key: 'added_sugar_g', label: t('nutrient_added_sugar'), unit: 'g' },
+    { key: 'total_fat_g', label: t('nutrient_total_fat'), unit: 'g' },
+    { key: 'saturated_fat_g', label: t('nutrient_sat_fat'), unit: 'g' },
+    { key: 'trans_fat_g', label: t('nutrient_trans_fat'), unit: 'g' },
+    { key: 'sodium_mg', label: t('nutrient_sodium'), unit: 'mg' },
+    { key: 'fibre_g', label: t('nutrient_fibre'), unit: 'g' },
   ];
+
 
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>

@@ -8,12 +8,14 @@ from fastapi import FastAPI, File, Form, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
+from app.barcode.service import BarcodeService, OFFLINE_INDIAN_BARCODES
 from app.config import settings
 from app.extractor.service import LabelAnalysisService, SCAN_STORE
 from app.models.analysis import AnalysisResult
 from app.models.extraction import LabelExtraction
 from app.providers.factory import get_llm_provider
 from app.rules.engine import RulesEngine
+
 
 # Prometheus Metrics
 REQUEST_COUNT = Counter(
@@ -45,7 +47,9 @@ async def lifespan(app: FastAPI):
     app.state.rules_engine = RulesEngine(rules_path)
     app.state.provider = get_llm_provider(settings.llm_provider)
     app.state.service = LabelAnalysisService(app.state.provider, app.state.rules_engine)
+    app.state.barcode_service = BarcodeService()
     yield
+
 
 
 app = FastAPI(
@@ -195,4 +199,46 @@ async def score_label(extraction: LabelExtraction):
     )
     SCAN_STORE[scan_id] = result
     return result
+
+
+@app.get("/api/barcode/presets", tags=["Barcode"])
+async def get_barcode_presets():
+    """Return available FMCG barcodes for quick 1-click scanning and testing."""
+    return [
+        {"barcode": code, "product_name": data["product_name"]}
+        for code, data in OFFLINE_INDIAN_BARCODES.items()
+    ]
+
+
+@app.get("/api/barcode/{barcode}", response_model=AnalysisResult, tags=["Barcode"])
+async def lookup_barcode(barcode: str):
+    """Scan or lookup product by EAN/UPC barcode via Open Food Facts India."""
+    if not hasattr(app.state, "barcode_service"):
+        app.state.barcode_service = BarcodeService()
+    if not hasattr(app.state, "rules_engine"):
+        rules_path = settings.resolve_rules_path()
+        app.state.rules_engine = RulesEngine(rules_path)
+
+    extraction = await app.state.barcode_service.lookup(barcode)
+    if not extraction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Barcode '{barcode}' not found in Open Food Facts India database.",
+        )
+
+    red_flags, score_details = app.state.rules_engine.evaluate(extraction)
+    scan_id = str(uuid.uuid4())
+    result = AnalysisResult(
+        scan_id=scan_id,
+        product_name=extraction.product_name,
+        score=score_details,
+        red_flags=red_flags,
+        extraction=extraction,
+        disclaimer=app.state.rules_engine.disclaimer,
+        processing_time_ms=15.0,
+        created_at=datetime.now(timezone.utc).isoformat(),
+    )
+    SCAN_STORE[scan_id] = result
+    return result
+
 

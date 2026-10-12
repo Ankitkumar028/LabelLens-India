@@ -52,3 +52,26 @@ export async function recalculateScore(extraction) {
 
   return await res.json();
 }
+
+export async function lookupBarcode(barcode) {
+  const clean = String(barcode).trim();
+  const res = await fetch(`${BASE_URL}/api/barcode/${encodeURIComponent(clean)}`);
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Barcode lookup failed' }));
+    throw new Error(errorData.detail || `Product not found (${res.status})`);
+  }
+
+  return await res.json();
+}
+
+export async function getBarcodePresets() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/barcode/presets`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    return [];
+  }
+}
+

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { AlertCircle, AlertTriangle, Info, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function RedFlagsList({ redFlags }) {
+  const { t } = useLanguage();
   const [activeFilter, setActiveFilter] = useState('ALL');
 
   const filterOptions = ['ALL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
@@ -58,7 +60,7 @@ export default function RedFlagsList({ redFlags }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldAlert size={20} color="#ef4444" />
           <h2 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
-            FSSAI Red Flags & Warnings
+            {t('red_flags_title')}
           </h2>
           <span style={{
             background: 'rgba(239, 68, 68, 0.15)',
@@ -118,7 +120,7 @@ export default function RedFlagsList({ redFlags }) {
         }}>
           <CheckCircle2 size={32} color="#10b981" style={{ marginBottom: '8px' }} />
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            No red flags detected in this category.
+            {t('no_red_flags')}
           </p>
         </div>
       ) : (
@@ -163,7 +165,7 @@ export default function RedFlagsList({ redFlags }) {
                         padding: '2px 8px',
                         borderRadius: '6px',
                       }}>
-                        -{flag.penalty} pts
+                        -{flag.penalty} {t('points')}
                       </span>
                     )}
                     <span style={{
