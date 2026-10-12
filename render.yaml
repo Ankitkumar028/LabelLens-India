@@ -35,12 +35,9 @@ services:
     healthCheckPath: /health
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: labellens-api
-          property: host
+        value: https://labellens-api-ktax.onrender.com
       - key: API_BACKEND_URL
-        value: http://labellens-api:8000
+        value: https://labellens-api-ktax.onrender.com
 
   # Grafana + Prometheus Monitoring Service (Free Tier)
   - type: web

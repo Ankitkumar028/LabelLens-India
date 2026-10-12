@@ -88,6 +88,7 @@ async def monitor_requests(request: Request, call_next):
 
 
 @app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
 async def health():
     """Health check endpoint indicating service and provider status."""
     if not hasattr(app.state, "provider"):

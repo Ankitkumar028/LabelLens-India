@@ -2,20 +2,31 @@
  * API Client for LabelLens India backend services.
  */
 
+export function formatApiBaseUrl(url) {
+  let u = (url || '').trim();
+  if (!u) return '';
+  if (!u.includes('.') && !u.startsWith('http')) {
+    u = `${u}.onrender.com`;
+  }
+  if (!u.startsWith('http')) {
+    u = `https://${u}`;
+  }
+  return u.replace(/\/+$/, '');
+}
+
 const rawApiUrl = (
   (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.VITE_API_URL) ||
   import.meta.env.VITE_API_URL ||
   ''
 ).trim();
-const BASE_URL = rawApiUrl.startsWith('http')
-  ? rawApiUrl
-  : (rawApiUrl ? `https://${rawApiUrl}` : '');
+
+const BASE_URL = formatApiBaseUrl(rawApiUrl);
 
 export async function checkHealth() {
   try {
-    const res = await fetch(`${BASE_URL}/api/health`);
+    const res = await fetch(`${BASE_URL}/health`);
     if (res.ok) return await res.json();
-    const fallbackRes = await fetch(`${BASE_URL}/health`);
+    const fallbackRes = await fetch(`${BASE_URL}/api/health`);
     if (fallbackRes.ok) return await fallbackRes.json();
     throw new Error(`HTTP ${res.status}`);
   } catch (err) {
