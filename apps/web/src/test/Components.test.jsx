@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import ScoreGauge from '../components/ScoreGauge';
 import PresetsBar from '../components/PresetsBar';
 import RedFlagsList from '../components/RedFlagsList';
+import ProductComparison from '../components/ProductComparison';
 
 describe('Frontend Components', () => {
   it('renders Navbar with LabelLens branding and healthy status', () => {
@@ -48,5 +49,15 @@ describe('Frontend Components', () => {
     expect(screen.getByText('Sugar Among First 3 Ingredients')).toBeDefined();
     expect(screen.getAllByText('HIGH').length).toBeGreaterThan(0);
     expect(screen.getByText('-20 pts')).toBeDefined();
+  });
+
+  it('renders ProductComparison with slots, winner banner, and action buttons', () => {
+    render(<ProductComparison />);
+    expect(screen.getByText('Side-by-Side Product Comparison')).toBeDefined();
+    expect(screen.getByText('Product A')).toBeDefined();
+    expect(screen.getByText('Product B')).toBeDefined();
+    expect(screen.getAllByText('Upload Photo').length).toBe(2);
+    expect(screen.getAllByText('Barcode').length).toBe(2);
+    expect(screen.getAllByText('Custom Values').length).toBe(2);
   });
 });
