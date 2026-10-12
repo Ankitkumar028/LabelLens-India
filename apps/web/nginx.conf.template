@@ -1,0 +1,50 @@
+server {
+    listen 80;
+    listen 10000;
+    listen [::]:80;
+    listen [::]:10000;
+    server_name localhost;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+
+    # Redirect stale /error routes to root /
+    location = /error {
+        return 302 /;
+    }
+
+    # Web service healthcheck endpoint
+    location = /health {
+        access_log off;
+        default_type application/json;
+        return 200 '{"status":"healthy","service":"labellens-web","version":"1.0.0"}';
+    }
+
+    # Proxy API healthcheck directly to backend service
+    location = /api/health {
+        resolver ${DNS_RESOLVER} valid=30s ipv6=off;
+        set $api_health_backend "${API_BACKEND_URL}/health";
+        proxy_pass $api_health_backend;
+        proxy_set_header Host $host;
+    }
+
+    # Proxy API calls directly to backend service
+    location /api/ {
+        resolver ${DNS_RESOLVER} valid=30s ipv6=off;
+        set $api_backend "${API_BACKEND_URL}";
+        proxy_pass $api_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 10M;
+    }
+
+    # Static assets and SPA routing
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+}

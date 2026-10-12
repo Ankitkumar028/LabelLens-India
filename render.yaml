@@ -17,6 +17,8 @@ services:
         value: gemini
       - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-flash-lite-latest
       - key: RULES_CONFIG_PATH
         value: /app/config/rules.yaml
       - key: ENVIRONMENT
@@ -37,3 +39,5 @@ services:
           type: web
           name: labellens-api
           property: host
+      - key: API_BACKEND_URL
+        value: http://labellens-api:8000
