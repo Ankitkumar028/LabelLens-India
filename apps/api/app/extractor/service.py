@@ -90,7 +90,7 @@ class LabelAnalysisService:
             extraction = await self.provider.extract(cleaned_bytes, mime_type)
 
         # Rules engine evaluation
-        red_flags, score_details = self.rules_engine.evaluate(extraction)
+        eval_result = self.rules_engine.evaluate(extraction)
 
         duration_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
         scan_id = str(uuid.uuid4())
@@ -99,8 +99,11 @@ class LabelAnalysisService:
         result = AnalysisResult(
             scan_id=scan_id,
             product_name=extraction.product_name,
-            score=score_details,
-            red_flags=red_flags,
+            score=eval_result.score,
+            red_flags=eval_result.red_flags,
+            compliance=eval_result.compliance,
+            who_impact=eval_result.who_impact,
+            confidence_report=eval_result.confidence_report,
             extraction=extraction,
             disclaimer=self.rules_engine.disclaimer,
             processing_time_ms=duration_ms,

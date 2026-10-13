@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 import './index.css';
 
-// Unregister zombie Service Workers from previous applications running on port 3000 (such as Open WebUI)
+// Unregister zombie Service Workers from previous applications running on port 3000
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const registration of registrations) {
@@ -20,8 +21,10 @@ if (typeof window !== 'undefined' && (window.location.pathname === '/error' || w
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <LanguageProvider>
-      <App />
-    </LanguageProvider>
+    <AuthProvider>
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
+    </AuthProvider>
   </React.StrictMode>,
 );

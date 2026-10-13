@@ -220,3 +220,55 @@ AI_assisted_devOps/
 - **Trilingual UI Localization**: Instant switching between English, Hindi (हिंदी), and Marathi (मराठी) with persistent browser storage.
 - **Side-by-Side Product Comparison**: Head-to-head snack comparisons with nutritional delta bars and automated FSSAI winner calculation.
 - **Unified Cloud Observability**: Single-container deployment of Prometheus and Grafana for resource-constrained free cloud tiers.
+
+## 13. Nutrition Intelligence Evolution (WHO & FSSAI 2020 Standards)
+Derived from the LabelLens Nutrition Intelligence Standard (`docs/LabelLens_Nutrition_Intelligence_Suggestions.md`):
+
+1. **Orthogonal Separation of Nutrition vs. Regulatory Compliance**:
+   - Packaging non-compliance (e.g. missing FSSAI 14-digit licence number or vegetable green dot) does **not** lower the nutritional score (0–100) of a food item.
+   - Independent FSSAI 2020 Compliance Checklist evaluated across:
+     - Clause 5(4): 14-digit FSSAI License & Registration declaration.
+     - Clause 5(3): Vegetarian / Non-Vegetarian symbol and color coding.
+     - Clause 5(2): Mandatory Allergen declaration / statement.
+     - Clause 5(8): Best Before / Expiry date and Lot/Batch identification.
+2. **Exact Mathematical Integrity**:
+   - All nutrient penalties (sugar, saturated fat, sodium) reconcile with complete mathematical integrity: `Final Score = Base Score (100) - Rule Penalties - Nutrient Deductions + Fibre/Protein Bonuses`.
+   - Eliminates duplicate sodium deductions and prevents double-penalization.
+3. **Interactive WHO Daily Intake Calculator**:
+   - Dynamic portion slider (5g to 150g) computing real-time % of WHO daily thresholds:
+     - **Sodium**: 2,000 mg/day max (WHO 2012 Guideline).
+     - **Free/Added Sugars**: 50 g/day max (<10% energy, WHO 2015 Guideline).
+     - **Saturated Fat**: 22 g/day max (<10% energy).
+     - **Dietary Fibre**: 25 g/day target (WHO/FSSAI daily minimum).
+4. **Extraction Provenance & Confidence Auditing**:
+   - Per-nutrient OCR extraction confidence rating (`HIGH`, `MEDIUM`, `LOW`) and field audit tracking.
+
+## 14. Multi-Provider BYOK (Bring-Your-Own-Key) AI Architecture
+To protect developer API quotas from exhaustion and allow unlimited scans:
+
+- **Supported AI Providers**:
+  - **Google Gemini**: Gemini 2.5 Flash / Flash Lite (Free tier via Google AI Studio).
+  - **OpenAI**: GPT-4o & GPT-4o-mini Vision via OpenAI Platform API.
+  - **AMD ROCm / vLLM**: High-throughput self-hosted inference on AMD Radeon/Instinct GPUs via OpenAI-compatible endpoints (`/v1/chat/completions`).
+  - **Server Demo Default**: Free fallback using hosted server credentials.
+- **Dynamic Credential Injection**:
+  - Frontend passes user credentials via HTTP headers (`X-LLM-Provider`, `X-LLM-API-Key`, `X-LLM-Model`, `X-LLM-Base-Url`) or multipart form fields.
+  - Provider Factory dynamically instantiates stateless provider instances per request.
+- **Live Connection Testing**:
+  - `POST /api/provider/test` endpoint executes a real 1-token multimodal test to verify user credentials before saving.
+
+## 15. Secured User Authentication Subsystem
+- **Password Protection**:
+  - Hardened with **PBKDF2-HMAC-SHA256** using 120,000 iterations and a cryptographically secure 32-byte salt.
+  - Constant-time hash verification (`hmac.compare_digest`) prevents timing side-channel attacks.
+- **Session & BYOK Storage**:
+  - SQLite backend (`users` and `sessions` tables in `scans.db`).
+  - High-entropy 32-byte hexadecimal session tokens (`secrets.token_hex(32)`) with 30-day expiration.
+  - Seamless synchronization of BYOK keys between user accounts and browser `localStorage`.
+- **Endpoints**:
+  - `POST /api/auth/register` — Create account.
+  - `POST /api/auth/login` — Authenticate and receive session token.
+  - `GET /api/auth/me` — Retrieve user profile and saved AI preferences.
+  - `POST /api/auth/save-keys` — Persist custom BYOK configurations.
+  - `POST /api/auth/logout` — Terminate active session.
+

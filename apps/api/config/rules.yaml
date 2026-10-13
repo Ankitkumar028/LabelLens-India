@@ -1,5 +1,14 @@
-version: "1.0.0"
+version: "2.0.0"
 disclaimer: "Informational only, not medical advice."
+
+# Reference public health standards
+standards:
+  who_daily_references:
+    sodium_mg: 2000.0        # < 2,000 mg/day (~5g salt)
+    free_sugars_g: 50.0      # < 10% daily energy intake (conditional < 25g/day for added benefit)
+    saturated_fat_g: 22.0    # < 10% daily energy intake (~22g for 2000 kcal diet)
+    trans_fat_g: 2.0         # < 1% daily energy intake
+    dietary_fibre_g: 25.0    # >= 25g naturally occurring fibre/day
 
 # Dictionaries for ingredient analysis
 dictionaries:
@@ -71,17 +80,17 @@ scoring:
     green:
       min_score: 70
       label: "GREEN"
-      description: "Healthier choice based on declared information."
+      description: "Nutritionally balanced choice adhering closely to WHO dietary recommendations."
     amber:
       min_score: 40
       label: "AMBER"
-      description: "Moderate caution advised; check high sugar, fats, sodium or missing fields."
+      description: "Moderate caution advised; check declared sugars, saturated fat, or sodium per serving."
     red:
       min_score: 0
       label: "RED"
-      description: "High risk; excessive critical nutrients or severely misleading/incomplete label."
+      description: "Higher in critical nutrients (sodium, sugars, or saturated fat) compared with WHO reference intake."
 
-  # Nutrient deductions
+  # Transparent nutrient adjustments (sum reconciles exactly with displayed score)
   nutrient_penalties:
     total_sugar_deduction_rate: 1.2
     sat_fat_deduction_rate: 2.0
@@ -92,14 +101,14 @@ scoring:
     protein_bonus_rate: 1.0
     max_protein_bonus: 5.0
 
-# Red flag rules evaluated by the engine
+# Nutritional observation rules (evaluated for red_flags)
 rules:
   - id: "nutrition_table_missing_or_incomplete"
     severity: "HIGH"
-    category: "transparency"
-    title: "Nutrition Table Missing or Incomplete"
+    category: "nutrition"
+    title: "Nutrition Table Incomplete"
     penalty: 25
-    description: "The nutritional information table is missing or core macros (energy, protein, carbohydrates, total fat) are undeclared."
+    description: "Core macronutrient values (energy, protein, carbohydrates, total fat) are undeclared or unreadable in the provided image."
     check: "nutrition_table_incomplete"
 
   - id: "added_sugar_undeclared_high_total"
@@ -107,7 +116,7 @@ rules:
     category: "sugar"
     title: "Added Sugar Undeclared with High Total Sugar"
     penalty: 15
-    description: "Added sugar is not declared, while total sugar is high (>10g per 100g). FSSAI requires separate declaration of added sugars."
+    description: "Added sugar is not separately declared, while total sugar is high (>10g per 100g). FSSAI 2020 mandates explicit added sugar declaration."
     check: "added_sugar_undeclared_high_total"
 
   - id: "trans_fat_undeclared_or_hydrogenated"
@@ -115,7 +124,7 @@ rules:
     category: "fats"
     title: "Trans Fat Undeclared or Hydrogenated Fat Present"
     penalty: 25
-    description: "Trans fat declaration is omitted, or ingredients indicate presence of hydrogenated/partially hydrogenated oils or vanaspati."
+    description: "Trans fat declaration omitted, or ingredients indicate presence of hydrogenated oils or vanaspati. WHO recommends eliminating industrial trans fats."
     check: "trans_fat_undeclared_or_hydrogenated"
 
   - id: "sodium_missing"
@@ -123,15 +132,15 @@ rules:
     category: "minerals"
     title: "Sodium Content Missing"
     penalty: 10
-    description: "Sodium content is missing from the nutritional declaration, preventing assessment of salt intake."
+    description: "Sodium content is missing from the nutritional declaration, preventing assessment of salt intake against WHO guidance."
     check: "sodium_missing"
 
   - id: "hidden_sugar_aliases"
     severity: "INFO"
     category: "sugar"
-    title: "Hidden Sugar Aliases Detected"
+    title: "Alternative Carbohydrate / Sugar Ingredients"
     penalty: 5
-    description: "Ingredients contain alternate sugar derivatives (e.g. maltodextrin, invert syrup, liquid glucose) which elevate glycemic load."
+    description: "Ingredients list contains refined sugar derivatives or syrups (e.g. maltodextrin, invert syrup, glucose). Consider their contribution to overall carbohydrate intake."
     check: "hidden_sugar_aliases"
 
   - id: "sugar_in_first_three_ingredients"
@@ -139,15 +148,15 @@ rules:
     category: "sugar"
     title: "Sugar Among First 3 Ingredients"
     penalty: 20
-    description: "Sugar or syrup is listed as one of the top 3 ingredients by weight, indicating a high-sugar product formulation."
+    description: "Sugar or syrups appear among the top 3 ingredients by weight, indicating a predominant sugar formulation."
     check: "sugar_in_first_three_ingredients"
 
   - id: "misleading_claim_no_added_sugar"
     severity: "HIGH"
     category: "claims"
-    title: "Misleading Claim: 'No Added Sugar' Contradicted"
+    title: "Claim Inconsistency: 'No Added Sugar'"
     penalty: 25
-    description: "Product claims 'no added sugar' or 'sugar free', but sugar sources or aliases are declared in ingredients or sugar sources list."
+    description: "Product claims 'no added sugar' or 'sugar free', but sugar sources or syrups are declared in the ingredient list."
     check: "misleading_claim_no_added_sugar"
 
   - id: "fssai_license_missing"
@@ -181,3 +190,30 @@ rules:
     penalty: 5
     description: "Nutrition is provided per serving only, omitting standard per-100g values needed for fair product comparison."
     check: "serving_without_per_100g"
+
+# FSSAI 2020 Packaging & Display Regulations Checks
+compliance_checks:
+  - id: "fssai_license"
+    title: "14-Digit FSSAI License Number"
+    fssai_clause: "FSSAI (Labelling & Display) Regulations 2020, Chapter 2, Clause 5(5)"
+    description: "Mandatory FSSAI logo and 14-digit license/registration number of the manufacturer or marketer."
+
+  - id: "veg_nonveg_symbol"
+    title: "Vegetarian / Non-Vegetarian Symbol"
+    fssai_clause: "FSSAI (Labelling & Display) Regulations 2020, Chapter 2, Clause 5(4)"
+    description: "Mandatory green filled circle in square (Veg) or brown filled triangle in square (Non-Veg) on the Principal Display Panel."
+
+  - id: "allergen_declaration"
+    title: "Allergen Statement"
+    fssai_clause: "FSSAI (Labelling & Display) Regulations 2020, Chapter 2, Clause 5(3)(ix)"
+    description: "Mandatory declaration for cereals with gluten, nuts, milk, soy, eggs, fish, sulphites, or 'Contains: None'."
+
+  - id: "per_100g_format"
+    title: "Per 100g / 100ml Nutrition Declaration"
+    fssai_clause: "FSSAI (Labelling & Display) Regulations 2020, Chapter 2, Clause 5(3)"
+    description: "Nutritional values must be declared per 100g or 100ml in addition to per-serving figures."
+
+  - id: "date_marking"
+    title: "Date of Manufacture & Best Before / Expiry"
+    fssai_clause: "FSSAI (Labelling & Display) Regulations 2020, Chapter 2, Clause 5(10)"
+    description: "Mandatory declaration of date of manufacture/packaging and expiry or best-before period."

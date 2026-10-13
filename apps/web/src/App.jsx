@@ -3,22 +3,47 @@ import Navbar from './components/Navbar';
 import ImageUploader from './components/ImageUploader';
 import CameraModal from './components/CameraModal';
 import BarcodeModal from './components/BarcodeModal';
+import AiSettingsModal from './components/AiSettingsModal';
+import AuthModal from './components/AuthModal';
 import PresetsBar from './components/PresetsBar';
 import ScoreGauge from './components/ScoreGauge';
 import RedFlagsList from './components/RedFlagsList';
 import NutritionInspector from './components/NutritionInspector';
 import ProductComparison from './components/ProductComparison';
+import WhoImpactCalculator from './components/WhoImpactCalculator';
+import LabelComplianceCard from './components/LabelComplianceCard';
+import ScanConfidenceCard from './components/ScanConfidenceCard';
 import { checkHealth, analyzeImage, recalculateScore, lookupBarcode } from './services/api';
 import { useLanguage } from './context/LanguageContext';
-import { Sparkles, Scan, AlertCircle, ArrowLeft, Loader2, Barcode, Swords } from 'lucide-react';
+import {
+  Sparkles,
+  Scan,
+  AlertCircle,
+  ArrowLeft,
+  Loader2,
+  Barcode,
+  Swords,
+  HeartPulse,
+  FileCheck2,
+  Activity,
+  Layers,
+  KeyRound,
+} from 'lucide-react';
 
 export default function App() {
   const { t } = useLanguage();
   const [healthStatus, setHealthStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('scanner'); // 'scanner' | 'compare'
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [resultSubTab, setResultSubTab] = useState('overview'); // 'overview' | 'who' | 'compliance' | 'provenance'
+
+  // Modals state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Scan state
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -73,6 +98,7 @@ export default function App() {
 
       const result = await analyzeImage(dummyFile, presetId);
       setAnalysisResult(result);
+      setResultSubTab('overview');
     } catch (err) {
       setErrorMessage(err.message || 'Failed to analyze sample preset.');
     } finally {
@@ -93,6 +119,7 @@ export default function App() {
         barcode: code,
       });
       setActiveTab('scanner');
+      setResultSubTab('overview');
     } catch (err) {
       setErrorMessage(err.message || t('barcode_not_found'));
     } finally {
@@ -111,8 +138,9 @@ export default function App() {
         selectedImage.isPreset ? selectedImage.presetId : null
       );
       setAnalysisResult(result);
+      setResultSubTab('overview');
     } catch (err) {
-      setErrorMessage(err.message || 'Analysis failed. Please try another image.');
+      setErrorMessage(err.message || 'Analysis failed. Please check your image or AI settings.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -123,7 +151,14 @@ export default function App() {
     setErrorMessage(null);
     try {
       const updated = await recalculateScore(editedExtraction);
-      setAnalysisResult(updated);
+      // Preserve existing compliance and confidence if not returned
+      setAnalysisResult((prev) => ({
+        ...prev,
+        ...updated,
+        compliance: updated.compliance || prev.compliance,
+        who_impact: updated.who_impact || prev.who_impact,
+        confidence_report: updated.confidence_report || prev.confidence_report,
+      }));
     } catch (err) {
       setErrorMessage(err.message || 'Recalculation failed.');
     } finally {
@@ -141,6 +176,8 @@ export default function App() {
           setErrorMessage(null);
         }}
         onOpenBarcodeModal={() => setIsBarcodeOpen(true)}
+        onOpenAiSettings={() => setIsAiSettingsOpen(true)}
+        onOpenAuthModal={() => setIsAuthOpen(true)}
       />
 
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 20px', flex: 1, width: '100%' }}>
@@ -167,7 +204,7 @@ export default function App() {
         {activeTab === 'compare' ? (
           <ProductComparison liveAnalysisA={analysisResult} />
         ) : (
-          /* Tab 2: Single Label Scanner & Barcode Flow */
+          /* Tab 2: Single Label Scanner & Intelligence Suite */
           <div>
             {/* Hero Banner (when no results yet) */}
             {!analysisResult && (
@@ -204,14 +241,14 @@ export default function App() {
                 <p style={{
                   fontSize: '1.05rem',
                   color: 'var(--text-secondary)',
-                  maxWidth: '680px',
-                  margin: '0 auto',
+                  maxWidth: '720px',
+                  margin: '0 auto 20px auto',
                 }}>
                   {t('hero_desc')}
                 </p>
 
-                {/* Direct Barcode Button under Hero */}
-                <div style={{ marginTop: '20px' }}>
+                {/* Quick Action Badges (Barcode + BYOK Key) */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => setIsBarcodeOpen(true)}
                     style={{
@@ -220,7 +257,7 @@ export default function App() {
                       borderRadius: '30px',
                       padding: '8px 20px',
                       color: 'var(--accent-cyan)',
-                      fontSize: '0.88rem',
+                      fontSize: '0.86rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       display: 'inline-flex',
@@ -235,8 +272,35 @@ export default function App() {
                       e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)';
                     }}
                   >
-                    <Barcode size={18} />
+                    <Barcode size={17} />
                     <span>{t('scan_barcode_btn')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsAiSettingsOpen(true)}
+                    style={{
+                      background: 'rgba(30, 41, 59, 0.7)',
+                      border: '1px solid rgba(16, 185, 129, 0.35)',
+                      borderRadius: '30px',
+                      padding: '8px 20px',
+                      color: '#34d399',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)';
+                    }}
+                  >
+                    <KeyRound size={16} />
+                    <span>Add Custom API Key (BYOK)</span>
                   </button>
                 </div>
               </div>
@@ -284,14 +348,14 @@ export default function App() {
                 <PresetsBar onSelectPreset={handleSelectPreset} isLoading={isAnalyzing} />
               </div>
             ) : (
-              /* Results Dashboard */
+              /* Enhanced Results Dashboard with Sub-Tabs */
               <div>
-                {/* Top Navigation */}
+                {/* Top Action Bar */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: '24px',
+                  marginBottom: '20px',
                   flexWrap: 'wrap',
                   gap: '12px',
                 }}>
@@ -303,7 +367,7 @@ export default function App() {
                     <ArrowLeft size={16} /> {t('scan_another')}
                   </button>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => setActiveTab('compare')}
                       className="btn-secondary"
@@ -312,48 +376,170 @@ export default function App() {
                       <Swords size={15} /> Compare with Another Snack
                     </button>
 
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      Time: {analysisResult.processing_time_ms} ms
-                    </span>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      background: 'rgba(30, 41, 59, 0.7)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: '6px',
-                      padding: '4px 8px',
-                      color: 'var(--text-secondary)',
-                    }}>
-                      Scan ID: {analysisResult.scan_id.slice(0, 8)}...
+                    <button
+                      onClick={() => setIsAiSettingsOpen(true)}
+                      className="btn-secondary"
+                      style={{ padding: '8px 14px', fontSize: '0.82rem' }}
+                    >
+                      <KeyRound size={15} /> AI Settings
+                    </button>
+
+                    <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      {analysisResult.processing_time_ms} ms
                     </span>
                   </div>
                 </div>
 
-                {/* Main Result Grid */}
+                {/* Intelligence Sub-Tab Selector */}
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-                  gap: '24px',
-                  alignItems: 'start',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(15, 23, 42, 0.75)',
+                  padding: '6px',
+                  borderRadius: '14px',
+                  border: '1px solid var(--border-subtle)',
+                  marginBottom: '24px',
+                  overflowX: 'auto',
                 }}>
-                  {/* Left Column: Score Gauge & Health Rating */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <ScoreGauge
-                      score={analysisResult.score}
-                      disclaimer={analysisResult.disclaimer}
-                    />
+                  <button
+                    onClick={() => setResultSubTab('overview')}
+                    style={{
+                      background: resultSubTab === 'overview' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+                      border: resultSubTab === 'overview' ? '1px solid rgba(56, 189, 248, 0.4)' : 'none',
+                      color: resultSubTab === 'overview' ? '#ffffff' : 'var(--text-secondary)',
+                      borderRadius: '10px',
+                      padding: '8px 16px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <Activity size={16} color="var(--accent-cyan)" />
+                    <span>Nutrition & Score</span>
+                  </button>
 
-                    <RedFlagsList redFlags={analysisResult.red_flags} />
-                  </div>
+                  <button
+                    onClick={() => setResultSubTab('who')}
+                    style={{
+                      background: resultSubTab === 'who' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                      border: resultSubTab === 'who' ? '1px solid rgba(16, 185, 129, 0.4)' : 'none',
+                      color: resultSubTab === 'who' ? '#ffffff' : 'var(--text-secondary)',
+                      borderRadius: '10px',
+                      padding: '8px 16px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <HeartPulse size={16} color="#34d399" />
+                    <span>Interactive WHO Impact</span>
+                  </button>
 
-                  {/* Right Column: OCR Inspector & Nutritional Breakdown */}
-                  <div>
-                    <NutritionInspector
-                      extraction={analysisResult.extraction}
-                      onRecalculate={handleRecalculate}
-                      isUpdating={isRecalculating}
-                    />
-                  </div>
+                  <button
+                    onClick={() => setResultSubTab('compliance')}
+                    style={{
+                      background: resultSubTab === 'compliance' ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+                      border: resultSubTab === 'compliance' ? '1px solid rgba(245, 158, 11, 0.4)' : 'none',
+                      color: resultSubTab === 'compliance' ? '#ffffff' : 'var(--text-secondary)',
+                      borderRadius: '10px',
+                      padding: '8px 16px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <FileCheck2 size={16} color="#fbbf24" />
+                    <span>FSSAI 2020 Compliance</span>
+                  </button>
+
+                  <button
+                    onClick={() => setResultSubTab('provenance')}
+                    style={{
+                      background: resultSubTab === 'provenance' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+                      border: resultSubTab === 'provenance' ? '1px solid rgba(99, 102, 241, 0.4)' : 'none',
+                      color: resultSubTab === 'provenance' ? '#ffffff' : 'var(--text-secondary)',
+                      borderRadius: '10px',
+                      padding: '8px 16px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <Layers size={16} color="#a5b4fc" />
+                    <span>Confidence & Audit</span>
+                  </button>
                 </div>
+
+                {/* Sub-Tab 1: Main Overview (Score Gauge + Red Flags + Nutrition Inspector) */}
+                {resultSubTab === 'overview' && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                    gap: '24px',
+                    alignItems: 'start',
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <ScoreGauge
+                        score={analysisResult.score}
+                        disclaimer={analysisResult.disclaimer}
+                      />
+                      <RedFlagsList redFlags={analysisResult.red_flags} />
+                    </div>
+
+                    <div>
+                      <NutritionInspector
+                        extraction={analysisResult.extraction}
+                        onRecalculate={handleRecalculate}
+                        isUpdating={isRecalculating}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-Tab 2: Interactive WHO Daily Limits Impact */}
+                {resultSubTab === 'who' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <WhoImpactCalculator
+                      extraction={analysisResult.extraction}
+                      servingSizeG={analysisResult.who_impact?.serving_size_g || 30}
+                    />
+                  </div>
+                )}
+
+                {/* Sub-Tab 3: FSSAI 2020 Compliance Checklist */}
+                {resultSubTab === 'compliance' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <LabelComplianceCard compliance={analysisResult.compliance} />
+                  </div>
+                )}
+
+                {/* Sub-Tab 4: Extraction Provenance & Confidence */}
+                {resultSubTab === 'provenance' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <ScanConfidenceCard
+                      confidenceReport={analysisResult.confidence_report}
+                      processingTimeMs={analysisResult.processing_time_ms}
+                      scanId={analysisResult.scan_id}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -375,6 +561,18 @@ export default function App() {
         isLoading={isAnalyzing}
       />
 
+      {/* AI Settings (BYOK) Modal */}
+      <AiSettingsModal
+        isOpen={isAiSettingsOpen}
+        onClose={() => setIsAiSettingsOpen(false)}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+      />
+
       {/* Footer */}
       <footer style={{
         borderTop: '1px solid var(--border-subtle)',
@@ -386,10 +584,10 @@ export default function App() {
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <p style={{ marginBottom: '6px' }}>
-            LabelLens India — FSSAI Compliance & Front-of-Pack Nutrition Intelligence.
+            LabelLens India — FSSAI 2020 Compliance & Front-of-Pack Nutrition Intelligence.
           </p>
           <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
-            Informational only, not medical advice. Built with FastAPI, Open Food Facts, ROCm vLLM & Antigravity.
+            Multi-Provider BYOK (Gemini, OpenAI, AMD ROCm vLLM). Informational only, not medical advice.
           </p>
         </div>
       </footer>

@@ -60,3 +60,7 @@ npm-debug.log*
 
 # Docker & logs
 *.log
+
+# SQLite Database
+*.db
+scans.db

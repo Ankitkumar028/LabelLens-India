@@ -1,5 +1,7 @@
 /**
  * API Client for LabelLens India backend services.
+ * Supports Bring-Your-Own-Key (BYOK) for Gemini, OpenAI, AMD ROCm vLLM,
+ * and secured authentication (PBKDF2-HMAC-SHA256).
  */
 
 export function formatApiBaseUrl(url) {
@@ -22,6 +24,60 @@ const rawApiUrl = (
 
 const BASE_URL = formatApiBaseUrl(rawApiUrl);
 
+// ==========================================
+// AI Settings & BYOK Local Persistence
+// ==========================================
+
+const AI_SETTINGS_STORAGE_KEY = 'labellens_ai_settings';
+const AUTH_TOKEN_KEY = 'labellens_auth_token';
+
+export function getAiSettings() {
+  try {
+    const raw = localStorage.getItem(AI_SETTINGS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        provider: parsed.provider || 'default',
+        apiKey: parsed.apiKey || '',
+        model: parsed.model || '',
+        baseUrl: parsed.baseUrl || '',
+      };
+    }
+  } catch (err) {
+    console.warn('Failed to parse saved AI settings', err);
+  }
+  return {
+    provider: 'default',
+    apiKey: '',
+    model: '',
+    baseUrl: '',
+  };
+}
+
+export function saveAiSettings(settings) {
+  try {
+    localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch (err) {
+    console.error('Failed to save AI settings to localStorage', err);
+  }
+}
+
+export function getAuthToken() {
+  return localStorage.getItem(AUTH_TOKEN_KEY) || null;
+}
+
+export function setAuthToken(token) {
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
+// ==========================================
+// Health Check
+// ==========================================
+
 export async function checkHealth() {
   try {
     const res = await fetch(`${BASE_URL}/health`);
@@ -34,7 +90,11 @@ export async function checkHealth() {
   }
 }
 
-export async function analyzeImage(fileOrBlob, preset = null) {
+// ==========================================
+// Image Analysis with BYOK Headers
+// ==========================================
+
+export async function analyzeImage(fileOrBlob, preset = null, customAiSettings = null) {
   const formData = new FormData();
   if (fileOrBlob) {
     formData.append('file', fileOrBlob);
@@ -43,8 +103,35 @@ export async function analyzeImage(fileOrBlob, preset = null) {
     formData.append('preset', preset);
   }
 
+  const ai = customAiSettings || getAiSettings();
+  const token = getAuthToken();
+
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Inject BYOK configurations
+  if (ai.provider && ai.provider !== 'default') {
+    headers['X-LLM-Provider'] = ai.provider;
+    formData.append('provider', ai.provider);
+  }
+  if (ai.apiKey) {
+    headers['X-LLM-API-Key'] = ai.apiKey;
+    formData.append('api_key', ai.apiKey);
+  }
+  if (ai.model) {
+    headers['X-LLM-Model'] = ai.model;
+    formData.append('model', ai.model);
+  }
+  if (ai.baseUrl) {
+    headers['X-LLM-Base-Url'] = ai.baseUrl;
+    formData.append('base_url', ai.baseUrl);
+  }
+
   const res = await fetch(`${BASE_URL}/api/analyze`, {
     method: 'POST',
+    headers,
     body: formData,
   });
 
@@ -57,11 +144,17 @@ export async function analyzeImage(fileOrBlob, preset = null) {
 }
 
 export async function recalculateScore(extraction) {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE_URL}/api/score`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(extraction),
   });
 
@@ -95,3 +188,114 @@ export async function getBarcodePresets() {
   }
 }
 
+// ==========================================
+// AI Provider Connectivity Test
+// ==========================================
+
+export async function testProviderConnection({ provider, apiKey, model, baseUrl }) {
+  const token = getAuthToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}/api/provider/test`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      provider: provider || 'gemini',
+      api_key: apiKey || null,
+      model: model || null,
+      base_url: baseUrl || null,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({ success: false, message: 'Invalid response from server' }));
+  if (!res.ok) {
+    throw new Error(data.message || data.detail || `Test failed (${res.status})`);
+  }
+  return data;
+}
+
+// ==========================================
+// Authentication Endpoints (PBKDF2 Secured)
+// ==========================================
+
+export async function registerUser(email, password) {
+  const res = await fetch(`${BASE_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json().catch(() => ({ detail: 'Registration failed' }));
+  if (!res.ok) {
+    throw new Error(data.detail || `Registration failed (${res.status})`);
+  }
+  return data;
+}
+
+export async function loginUser(email, password) {
+  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json().catch(() => ({ detail: 'Login failed' }));
+  if (!res.ok) {
+    throw new Error(data.detail || `Login failed (${res.status})`);
+  }
+  return data;
+}
+
+export async function fetchCurrentUser(token) {
+  const authToken = token || getAuthToken();
+  if (!authToken) return null;
+
+  const res = await fetch(`${BASE_URL}/api/auth/me`, {
+    headers: { 'Authorization': `Bearer ${authToken}` },
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      setAuthToken(null);
+      return null;
+    }
+    throw new Error(`Failed to load profile (${res.status})`);
+  }
+  return await res.json();
+}
+
+export async function saveUserAiKeys(keys) {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  const res = await fetch(`${BASE_URL}/api/auth/save-keys`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(keys),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Save failed' }));
+    throw new Error(errorData.detail || `Failed to save keys (${res.status})`);
+  }
+  return await res.json();
+}
+
+export async function logoutUser() {
+  const token = getAuthToken();
+  if (token) {
+    try {
+      await fetch(`${BASE_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.warn('Logout network error', err);
+    }
+  }
+  setAuthToken(null);
+}

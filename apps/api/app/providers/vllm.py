@@ -52,9 +52,10 @@ CRITICAL RULES:
 class VLLMLLMProvider(LLMProvider):
     """Integrates with OpenAI-compatible vLLM server running on AMD MI300X with ROCm."""
 
-    def __init__(self, api_base: str = "", model_name: str = ""):
+    def __init__(self, api_base: str = "", model_name: str = "", api_key: str = ""):
         self.api_base = (api_base or settings.vllm_api_base).rstrip("/")
         self.model_name = model_name or settings.vllm_model or "Qwen/Qwen2.5-VL-7B-Instruct"
+        self.api_key = api_key or ""
         self.timeout_seconds = 60.0
 
     @property
@@ -79,6 +80,10 @@ class VLLMLLMProvider(LLMProvider):
         data_uri = f"data:{mime_type};base64,{base64_image}"
 
         url = f"{self.api_base}/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
         payload = {
             "model": self.model_name,
             "messages": [
@@ -97,7 +102,7 @@ class VLLMLLMProvider(LLMProvider):
 
         async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
             try:
-                response = await client.post(url, json=payload)
+                response = await client.post(url, headers=headers, json=payload)
             except httpx.ConnectError:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
