@@ -1,0 +1,296 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "uid": "labellens-architecture-dataflow",
+  "title": "LabelLens India — End-to-End Architecture Data Flow",
+  "tags": ["architecture", "pipeline", "dataflow", "stages", "latency", "labellens"],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["overview", "marketing", "labellens"],
+      "title": "LabelLens Intelligence Suite",
+      "type": "dashboards"
+    }
+  ],
+  "timezone": "browser",
+  "liveNow": true,
+  "refresh": "5s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "⚡ End-to-End Architectural Pipeline Stages",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "title": "Stage 1: Client Ingress",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"1_ingress\"}) or vector(0)",
+          "legendFormat": "Ingress Requests",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Stage 2: Security & Auth Gate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"2_gateway_auth\"}) or vector(0)",
+          "legendFormat": "Gate Verified",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "purple", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Stage 3: AI Multimodal Vision",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"3_vision_ai\"}) or vector(0)",
+          "legendFormat": "AI Invocations",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "cyan", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Stage 4: FSSAI & WHO Rules Engine",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"4_rules_engine\"}) or vector(0)",
+          "legendFormat": "Rules Evaluated",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "yellow", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Stage 5: SQLite DB & Store Persist",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"5_db_persist\"}) or vector(0)",
+          "legendFormat": "DB Persisted",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "orange", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Stage 6: Client Delivery",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum(labellens_pipeline_stage_requests_total{stage=\"6_client_delivery\"}) or vector(0)",
+          "legendFormat": "Delivered to Client",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 200,
+      "title": "📊 Stage Throughput & Request Traffic Flow",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "title": "Data Flow Rate Across All Architectural Stages (req/sec)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 14, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (stage) (rate(labellens_pipeline_stage_requests_total[5m]))",
+          "legendFormat": "{{stage}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 15
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Stage Completion Breakdown",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (stage) (labellens_pipeline_stage_requests_total)",
+          "legendFormat": "{{stage}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 300,
+      "title": "⏱️ Latency & Processing Times Per Architectural Stage",
+      "type": "row"
+    },
+    {
+      "id": 9,
+      "title": "Stage 3: AI Inference Latency by Model (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(labellens_pipeline_stage_duration_seconds_bucket{stage=\"3_vision_ai\"}[5m])) by (le))",
+          "legendFormat": "p95 Vision AI Latency",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Total End-to-End Pipeline Roundtrip Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(labellens_pipeline_stage_duration_seconds_bucket{stage=\"e2e_total\"}[5m])) by (le))",
+          "legendFormat": "p95 End-to-End Pipeline",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      }
+    }
+  ]
+}

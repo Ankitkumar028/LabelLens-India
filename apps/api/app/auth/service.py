@@ -211,6 +211,29 @@ class AuthService:
             cursor.execute("DELETE FROM sessions WHERE token = ?", (clean_token,))
             conn.commit()
 
+    def get_user_count(self) -> int:
+        """Return total registered user count."""
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM users")
+                row = cursor.fetchone()
+                return row[0] if row else 0
+        except Exception:
+            return 0
+
+    def get_active_session_count(self) -> int:
+        """Return count of unexpired active sessions."""
+        try:
+            now_str = datetime.now(timezone.utc).isoformat()
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM sessions WHERE expires_at > ?", (now_str,))
+                row = cursor.fetchone()
+                return row[0] if row else 0
+        except Exception:
+            return 0
+
     @staticmethod
     def _create_session(cursor, user_id: str) -> str:
         """Create a 30-day session token."""

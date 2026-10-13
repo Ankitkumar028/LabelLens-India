@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import time
-from typing import Optional
+from typing import Any, Dict, Optional
 import uuid
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from pydantic import BaseModel, Field
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
 from app.auth import (
     AuthService,
@@ -26,7 +27,9 @@ from app.providers.factory import get_llm_provider
 from app.rules.engine import RulesEngine
 
 
-# Prometheus Metrics
+# ===========================================================================
+# Core System Prometheus Metrics
+# ===========================================================================
 REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total HTTP requests",
@@ -46,6 +49,72 @@ RED_FLAGS_TRIGGERED = Counter(
     "labellens_red_flags_total",
     "Total red flags triggered",
     ["rule_id", "severity"],
+)
+
+# ===========================================================================
+# User Behavior, Engagement & Marketing Analytics Metrics
+# ===========================================================================
+USERS_REGISTERED_COUNT = Counter(
+    "labellens_users_registered_total",
+    "Cumulative total user registrations",
+)
+USERS_TOTAL_GAUGE = Gauge(
+    "labellens_users_total",
+    "Current total registered users in database",
+)
+AUTH_EVENTS = Counter(
+    "labellens_auth_events_total",
+    "Authentication events by type and outcome",
+    ["event", "status"],  # event: register|login|logout, status: success|failure
+)
+ACTIVE_SESSIONS = Gauge(
+    "labellens_active_sessions_total",
+    "Current active authenticated sessions in database",
+)
+USER_ACTIONS = Counter(
+    "labellens_user_actions_total",
+    "User interactions and marketing funnel milestones",
+    ["action"],  # landing_view|sample_preset|barcode_lookup|image_upload|recalculate|compare_view|byok_saved
+)
+USER_BYOK_PREFERENCES = Counter(
+    "labellens_user_byok_preferences_total",
+    "User preferred BYOK provider configurations",
+    ["provider"],  # gemini|openai|vllm|default
+)
+SCANS_BY_USER_TYPE = Counter(
+    "labellens_scans_by_user_type_total",
+    "Scans completed by user authentication segment",
+    ["user_type"],  # registered|guest
+)
+SCANS_BY_CATEGORY = Counter(
+    "labellens_scans_by_category_total",
+    "Product category distribution from scanned food packages",
+    ["category"],  # biscuits|cereals|beverages|dairy|snacks|sweets|general
+)
+TRAFFIC_BY_LANGUAGE = Counter(
+    "labellens_traffic_by_language_total",
+    "Multilingual client engagement and locale distribution",
+    ["language"],  # en|hi|mr
+)
+
+# ===========================================================================
+# End-to-End Architecture Data Flow Pipeline Metrics
+# ===========================================================================
+PIPELINE_STAGE_REQUESTS = Counter(
+    "labellens_pipeline_stage_requests_total",
+    "Requests entering each architectural pipeline stage",
+    ["stage", "status"],  # stage: 1_ingress|2_gateway_auth|3_vision_ai|4_rules_engine|5_db_persist|6_client_delivery
+)
+PIPELINE_STAGE_LATENCY = Histogram(
+    "labellens_pipeline_stage_duration_seconds",
+    "Latency per architectural pipeline stage in seconds",
+    ["stage"],
+    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+)
+INFERENCE_STAGE_METRICS = Counter(
+    "labellens_inference_stage_total",
+    "AI Vision inference invocations by provider and outcome",
+    ["provider", "status"],
 )
 
 auth_service = AuthService()
@@ -128,21 +197,78 @@ async def health():
     }
 
 
+def detect_food_category(extraction: Optional[LabelExtraction]) -> str:
+    """Classify scanned food items into market categories for demographic analytics."""
+    if not extraction:
+        return "general"
+    name = (extraction.product_name or "").lower()
+    text = name + " " + " ".join([i.lower() for i in (extraction.ingredients or [])])
+    if any(k in text for k in ["biscuit", "cookie", "rusk"]):
+        return "biscuits"
+    if any(k in text for k in ["muesli", "cereal", "oats", "grain"]):
+        return "cereals"
+    if any(k in text for k in ["drink", "juice", "beverage", "tea", "coffee", "cola", "soda"]):
+        return "beverages"
+    if any(k in text for k in ["milk", "butter", "cheese", "curd", "paneer", "dairy", "yogurt"]):
+        return "dairy"
+    if any(k in text for k in ["chip", "bhujia", "namkeen", "snack", "khakhra", "noodle"]):
+        return "snacks"
+    if any(k in text for k in ["sweet", "papdi", "ladoo", "mithai"]):
+        return "sweets"
+    if any(k in text for k in ["protein", "whey", "fitness", "bar"]):
+        return "fitness"
+    return "general"
+
+
+class AnalyticsEvent(BaseModel):
+    action: str = Field(description="User action or marketing milestone")
+    metadata: Optional[Dict[str, Any]] = None
+
+
 @app.get("/metrics", tags=["System"])
 async def metrics():
-    """Prometheus metrics endpoint."""
+    """Prometheus metrics endpoint with dynamic session & user gauge refreshes."""
+    try:
+        ACTIVE_SESSIONS.set(auth_service.get_active_session_count())
+        USERS_TOTAL_GAUGE.set(auth_service.get_user_count())
+    except Exception:
+        pass
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.post("/api/analytics/event", tags=["Marketing & Analytics"])
+async def track_marketing_event(event: AnalyticsEvent):
+    """Ingest client-side user behavior events, feature interactions, and marketing milestones."""
+    USER_ACTIONS.labels(action=event.action).inc()
+    if event.metadata:
+        lang = event.metadata.get("language")
+        if lang:
+            TRAFFIC_BY_LANGUAGE.labels(language=lang).inc()
+        prov = event.metadata.get("provider")
+        if prov:
+            USER_BYOK_PREFERENCES.labels(provider=prov).inc()
+    return {"status": "recorded"}
+
+
 # ---------------------------------------------------------------------------
-# Authentication Endpoints
+# Authentication Endpoints (Instrumented with Marketing & Pipeline Metrics)
 # ---------------------------------------------------------------------------
 
 @app.post("/api/auth/register", response_model=AuthResponse, tags=["Authentication"])
 async def register(req: RegisterRequest):
     """Register a new user account with secure PBKDF2-HMAC-SHA256 password hashing."""
-    user, token = auth_service.register(req.username, req.email, req.password)
-    return AuthResponse(user=user, token=token)
+    try:
+        user, token = auth_service.register(req.username, req.email, req.password)
+        AUTH_EVENTS.labels(event="register", status="success").inc()
+        USERS_REGISTERED_COUNT.inc()
+        USERS_TOTAL_GAUGE.set(auth_service.get_user_count())
+        ACTIVE_SESSIONS.set(auth_service.get_active_session_count())
+        USER_ACTIONS.labels(action="user_registered").inc()
+        PIPELINE_STAGE_REQUESTS.labels(stage="5_db_persist", status="user_created").inc()
+        return AuthResponse(user=user, token=token)
+    except Exception as e:
+        AUTH_EVENTS.labels(event="register", status="failure").inc()
+        raise
 
 
 @app.post("/api/auth/login", response_model=AuthResponse, tags=["Authentication"])
@@ -154,8 +280,16 @@ async def login(req: LoginRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Please provide an email or username.",
         )
-    user, token = auth_service.login(identifier, req.password)
-    return AuthResponse(user=user, token=token)
+    try:
+        user, token = auth_service.login(identifier, req.password)
+        AUTH_EVENTS.labels(event="login", status="success").inc()
+        ACTIVE_SESSIONS.set(auth_service.get_active_session_count())
+        USER_ACTIONS.labels(action="user_logged_in").inc()
+        PIPELINE_STAGE_REQUESTS.labels(stage="2_gateway_auth", status="session_issued").inc()
+        return AuthResponse(user=user, token=token)
+    except Exception as e:
+        AUTH_EVENTS.labels(event="login", status="failure").inc()
+        raise
 
 
 @app.get("/api/auth/me", response_model=UserOut, tags=["Authentication"])
@@ -166,6 +300,7 @@ async def get_me(authorization: Optional[str] = Header(None)):
     user = auth_service.get_user_by_token(authorization)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired or invalid.")
+    PIPELINE_STAGE_REQUESTS.labels(stage="2_gateway_auth", status="session_verified").inc()
     return user
 
 
@@ -178,6 +313,9 @@ async def save_byok_keys(req: SaveByokRequest, authorization: Optional[str] = He
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired or invalid.")
     auth_service.save_byok(user.id, req.model_dump())
+    USER_BYOK_PREFERENCES.labels(provider=req.provider).inc()
+    USER_ACTIONS.labels(action="byok_saved").inc()
+    PIPELINE_STAGE_REQUESTS.labels(stage="5_db_persist", status="byok_saved").inc()
     return {"status": "saved", "message": "BYOK preferences successfully saved to profile."}
 
 
@@ -186,6 +324,8 @@ async def logout(authorization: Optional[str] = Header(None)):
     """Invalidate active session token."""
     if authorization:
         auth_service.logout(authorization)
+        AUTH_EVENTS.labels(event="logout", status="success").inc()
+        ACTIVE_SESSIONS.set(auth_service.get_active_session_count())
     return {"status": "logged_out"}
 
 
@@ -278,12 +418,32 @@ async def analyze_label(
                 detail=f"Invalid BYOK configuration: {str(e)}",
             )
 
+    req_start = time.perf_counter()
+    PIPELINE_STAGE_REQUESTS.labels(stage="1_ingress", status="received").inc()
+    user_status = "registered" if request.headers.get("Authorization") else "guest"
+    SCANS_BY_USER_TYPE.labels(user_type=user_status).inc()
+    USER_ACTIONS.labels(action="scan_initiated").inc()
+    PIPELINE_STAGE_REQUESTS.labels(stage="2_gateway_auth", status="verified").inc()
+
     try:
+        inf_start = time.perf_counter()
+        PIPELINE_STAGE_REQUESTS.labels(stage="3_vision_ai", status="invoked").inc()
+
         result = await active_service.analyze_image(
             image_bytes=image_bytes,
             content_type=file.content_type,
             preset=preset,
         )
+
+        inf_duration = time.perf_counter() - inf_start
+        PIPELINE_STAGE_LATENCY.labels(stage="3_vision_ai").observe(inf_duration)
+        INFERENCE_STAGE_METRICS.labels(provider=active_provider_name, status="success").inc()
+
+        # Stage 4: Rules Engine
+        PIPELINE_STAGE_REQUESTS.labels(stage="4_rules_engine", status="evaluated").inc()
+
+        # Stage 5: Database & Scan Store Persist
+        PIPELINE_STAGE_REQUESTS.labels(stage="5_db_persist", status="persisted").inc()
 
         # Track metrics
         SCANS_PROCESSED.labels(
@@ -294,10 +454,21 @@ async def analyze_label(
         for rf in result.red_flags:
             RED_FLAGS_TRIGGERED.labels(rule_id=rf.id, severity=rf.severity).inc()
 
+        # Classify food category for marketing intelligence
+        category = detect_food_category(result.extraction)
+        SCANS_BY_CATEGORY.labels(category=category).inc()
+
+        # Stage 6: Client Delivery
+        total_e2e = time.perf_counter() - req_start
+        PIPELINE_STAGE_REQUESTS.labels(stage="6_client_delivery", status="delivered").inc()
+        PIPELINE_STAGE_LATENCY.labels(stage="e2e_total").observe(total_e2e)
+
         return result
     except HTTPException:
+        PIPELINE_STAGE_REQUESTS.labels(stage="3_vision_ai", status="error").inc()
         raise
     except Exception as e:
+        PIPELINE_STAGE_REQUESTS.labels(stage="3_vision_ai", status="error").inc()
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -327,6 +498,8 @@ async def get_scan(scan_id: str):
 @app.post("/api/score", response_model=AnalysisResult, tags=["Analysis"])
 async def score_label(extraction: LabelExtraction):
     """Recalculate score, FSSAI compliance, and WHO impact for edited or corrected label values."""
+    USER_ACTIONS.labels(action="recalculate_score").inc()
+    PIPELINE_STAGE_REQUESTS.labels(stage="4_rules_engine", status="recalculated").inc()
     if not hasattr(app.state, "rules_engine"):
         rules_path = settings.resolve_rules_path()
         app.state.rules_engine = RulesEngine(rules_path)
@@ -343,16 +516,18 @@ async def score_label(extraction: LabelExtraction):
         confidence_report=eval_res.confidence_report,
         extraction=extraction,
         disclaimer=app.state.rules_engine.disclaimer,
-        processing_time_ms=1.0,
+        processing_time_ms=5.0,
         created_at=datetime.now(timezone.utc).isoformat(),
     )
     SCAN_STORE[scan_id] = result
+    PIPELINE_STAGE_REQUESTS.labels(stage="6_client_delivery", status="delivered").inc()
     return result
 
 
 @app.get("/api/barcode/presets", tags=["Barcode"])
 async def get_barcode_presets():
     """Return available FMCG barcodes for quick 1-click scanning and testing."""
+    USER_ACTIONS.labels(action="view_barcode_presets").inc()
     return [
         {"barcode": code, "product_name": data["product_name"]}
         for code, data in OFFLINE_INDIAN_BARCODES.items()
@@ -362,6 +537,8 @@ async def get_barcode_presets():
 @app.get("/api/barcode/{barcode}", response_model=AnalysisResult, tags=["Barcode"])
 async def lookup_barcode(barcode: str):
     """Scan or lookup product by EAN/UPC barcode via Open Food Facts India."""
+    USER_ACTIONS.labels(action="barcode_scanned").inc()
+    PIPELINE_STAGE_REQUESTS.labels(stage="1_ingress", status="barcode").inc()
     if not hasattr(app.state, "barcode_service"):
         app.state.barcode_service = BarcodeService()
     if not hasattr(app.state, "rules_engine"):
@@ -376,6 +553,7 @@ async def lookup_barcode(barcode: str):
         )
 
     eval_res = app.state.rules_engine.evaluate(extraction)
+    PIPELINE_STAGE_REQUESTS.labels(stage="4_rules_engine", status="evaluated").inc()
     scan_id = str(uuid.uuid4())
     result = AnalysisResult(
         scan_id=scan_id,
@@ -391,4 +569,9 @@ async def lookup_barcode(barcode: str):
         created_at=datetime.now(timezone.utc).isoformat(),
     )
     SCAN_STORE[scan_id] = result
+    PIPELINE_STAGE_REQUESTS.labels(stage="5_db_persist", status="persisted").inc()
+
+    category = detect_food_category(extraction)
+    SCANS_BY_CATEGORY.labels(category=category).inc()
+    PIPELINE_STAGE_REQUESTS.labels(stage="6_client_delivery", status="delivered").inc()
     return result

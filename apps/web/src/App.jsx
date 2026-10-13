@@ -13,7 +13,7 @@ import ProductComparison from './components/ProductComparison';
 import WhoImpactCalculator from './components/WhoImpactCalculator';
 import LabelComplianceCard from './components/LabelComplianceCard';
 import ScanConfidenceCard from './components/ScanConfidenceCard';
-import { checkHealth, analyzeImage, recalculateScore, lookupBarcode } from './services/api';
+import { checkHealth, analyzeImage, recalculateScore, lookupBarcode, trackAnalyticsEvent } from './services/api';
 import { useLanguage } from './context/LanguageContext';
 import {
   Sparkles,
@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [healthStatus, setHealthStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('scanner'); // 'scanner' | 'compare'
   const [resultSubTab, setResultSubTab] = useState('overview'); // 'overview' | 'who' | 'compliance' | 'provenance'
@@ -53,9 +53,10 @@ export default function App() {
     async function loadHealth() {
       const status = await checkHealth();
       setHealthStatus(status);
+      trackAnalyticsEvent('view_landing', { language });
     }
     loadHealth();
-  }, []);
+  }, [language]);
 
   const handleImageSelected = (file) => {
     const previewUrl = URL.createObjectURL(file);
@@ -82,6 +83,7 @@ export default function App() {
   const handleSelectPreset = async (presetId) => {
     setIsAnalyzing(true);
     setErrorMessage(null);
+    trackAnalyticsEvent('sample_preset_selected', { preset_id: presetId });
     try {
       const dummyCanvas = document.createElement('canvas');
       dummyCanvas.width = 100;
@@ -110,6 +112,7 @@ export default function App() {
     setIsAnalyzing(true);
     setErrorMessage(null);
     setIsBarcodeOpen(false);
+    trackAnalyticsEvent('barcode_scanned', { barcode: code });
     try {
       const result = await lookupBarcode(code);
       setAnalysisResult(result);
@@ -132,6 +135,7 @@ export default function App() {
 
     setIsAnalyzing(true);
     setErrorMessage(null);
+    trackAnalyticsEvent('image_analysis_submitted');
     try {
       const result = await analyzeImage(
         selectedImage.file,

@@ -39,7 +39,6 @@ def test_scan_increments_observability_metrics(client, sample_jpeg_bytes: bytes)
     )
     assert res.status_code == 200
 
-
     # Inspect /metrics
     metrics_res = client.get("/metrics")
     assert metrics_res.status_code == 200
@@ -47,6 +46,27 @@ def test_scan_increments_observability_metrics(client, sample_jpeg_bytes: bytes)
 
     assert 'labellens_scans_total{' in metrics_text
     assert 'labellens_red_flags_total{' in metrics_text
+    assert 'labellens_pipeline_stage_requests_total{' in metrics_text
+    assert 'labellens_scans_by_category_total{' in metrics_text
+
+
+def test_marketing_analytics_and_event_ingestion(client):
+    """Verify marketing events and demographic metrics recording."""
+    # Post marketing event
+    evt_res = client.post(
+        "/api/analytics/event",
+        json={"action": "view_landing", "metadata": {"language": "hi", "provider": "gemini"}},
+    )
+    assert evt_res.status_code == 200
+    assert evt_res.json()["status"] == "recorded"
+
+    # Verify metrics contain marketing dimensions
+    metrics_res = client.get("/metrics")
+    body = metrics_res.text
+    assert "labellens_user_actions_total" in body
+    assert "labellens_traffic_by_language_total" in body
+    assert "labellens_users_total" in body
+    assert "labellens_active_sessions_total" in body
 
 
 def test_prometheus_alert_rules_yaml_validity():

@@ -5,8 +5,18 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["marketing", "architecture", "labellens"],
+      "title": "LabelLens Intelligence Suite",
+      "type": "dashboards"
+    }
+  ],
+  "tags": ["labellens", "overview", "fssai"],
   "liveNow": true,
   "panels": [
     {

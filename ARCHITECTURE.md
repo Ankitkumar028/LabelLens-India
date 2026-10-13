@@ -272,3 +272,38 @@ To protect developer API quotas from exhaustion and allow unlimited scans:
   - `POST /api/auth/save-keys` — Persist custom BYOK configurations.
   - `POST /api/auth/logout` — Terminate active session.
 
+## 16. User Behavior & Marketing Intelligence Dashboard (Grafana)
+Located at [`infra/monitoring/grafana/dashboards/user_behavior_marketing.json`](infra/monitoring/grafana/dashboards/user_behavior_marketing.json):
+
+1. **Growth & Acquisition KPIs**:
+   - Total Registered Users (`labellens_users_total`).
+   - Active Authenticated Sessions (`labellens_active_sessions_total`).
+   - User Segment Breakdown: Registered Users vs. Anonymous Guests (`labellens_scans_by_user_type_total`).
+   - Cumulative Registration Events (`labellens_users_registered_total`).
+2. **Marketing Funnel Milestones**:
+   - Funnel Progression: Landing View → Sample Tested → Barcode Scanned → Scan Completed → User Registered → BYOK Saved (`labellens_user_actions_total`).
+   - Authentication Event Velocity over time (`labellens_auth_events_total`).
+3. **Consumer Product Interest & Market Affinities**:
+   - Most Scanned Indian FMCG Categories (Biscuits, Cereals, Beverages, Dairy, Snacks, Sweets) (`labellens_scans_by_category_total`).
+   - Audience Demographic Language Distribution (English, Hindi, Marathi) (`labellens_traffic_by_language_total`).
+   - BYOK Adoption by Provider (Gemini vs. OpenAI vs. AMD ROCm GPU) (`labellens_user_byok_preferences_total`).
+
+## 17. End-to-End Architecture Data Flow Dashboard (Grafana)
+Located at [`infra/monitoring/grafana/dashboards/architecture_data_flow.json`](infra/monitoring/grafana/dashboards/architecture_data_flow.json):
+
+Visualizes real-time data propagation through the 6 stages of the LabelLens India pipeline:
+1. **Stage 1 (Client Ingress)**:
+   - Ingress channels: Web PWA, Mobile Camera stream, File Drag & Drop, Barcode scanner, and 1-Click presets (`labellens_pipeline_stage_requests_total{stage="1_ingress"}`).
+2. **Stage 2 (Security Gate & Auth Verification)**:
+   - EXIF scrubbing, Non-food rejection gate, PBKDF2 session token validation, and BYOK header parsing (`stage="2_gateway_auth"`).
+3. **Stage 3 (AI Multimodal Vision Inference)**:
+   - Pluggable LLM invocation (Google Gemini 1.5 Flash vs. OpenAI GPT-4o vs. AMD ROCm vLLM).
+   - Real-time p95/p99 inference latency tracking (`labellens_pipeline_stage_duration_seconds{stage="3_vision_ai"}`).
+4. **Stage 4 (FSSAI 2020 Rules & WHO Nutrition Engine)**:
+   - Deterministic rule deductions, mathematical reconciliation, and FSSAI 2020 regulatory checklist evaluation (`stage="4_rules_engine"`).
+5. **Stage 5 (SQLite Database & Session Store Persistence)**:
+   - In-memory `SCAN_STORE` and SQLite `scans.db` transactional commits (`stage="5_db_persist"`).
+6. **Stage 6 (Client Delivery & UI Visualization)**:
+   - Roundtrip payload dispatch, traffic-light score delivery, and end-to-end latency tracking (`labellens_pipeline_stage_duration_seconds{stage="e2e_total"}`).
+
+

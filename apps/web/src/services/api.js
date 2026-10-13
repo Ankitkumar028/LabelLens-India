@@ -326,3 +326,17 @@ export async function logoutUser() {
   }
   setAuthToken(null);
 }
+
+export async function trackAnalyticsEvent(action, metadata = {}) {
+  try {
+    fetch(`${BASE_URL}/api/analytics/event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, metadata }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch (err) {
+    // Non-blocking
+  }
+}
+
