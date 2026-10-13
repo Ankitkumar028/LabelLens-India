@@ -148,7 +148,13 @@ async def register(req: RegisterRequest):
 @app.post("/api/auth/login", response_model=AuthResponse, tags=["Authentication"])
 async def login(req: LoginRequest):
     """Authenticate existing user credentials and return an active session token."""
-    user, token = auth_service.login(req.username_or_email, req.password)
+    identifier = req.username_or_email or req.email
+    if not identifier:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide an email or username.",
+        )
+    user, token = auth_service.login(identifier, req.password)
     return AuthResponse(user=user, token=token)
 
 

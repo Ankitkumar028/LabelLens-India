@@ -1,21 +1,36 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, Eye, EyeOff, ShieldCheck, UserCheck, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import {
+  X,
+  Lock,
+  Mail,
+  User,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSuccessfulAuth }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
@@ -23,8 +38,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
       return;
     }
 
@@ -32,16 +47,27 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
     try {
       if (mode === 'login') {
         await login(trimmedEmail, password);
+        setSuccessMsg('Welcome back! Signed in successfully.');
       } else {
-        await register(trimmedEmail, password);
+        await register(trimmedEmail, password, username.trim() || null);
+        setSuccessMsg('Account created successfully! You are now signed in.');
       }
-      if (onSuccessfulAuth) onSuccessfulAuth();
-      onClose();
+      setTimeout(() => {
+        if (onSuccessfulAuth) onSuccessfulAuth();
+        onClose();
+      }, 700);
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please check your credentials.');
+      const msg = typeof err === 'string' ? err : err.message || 'Authentication failed. Please check your credentials.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setError(null);
+    setSuccessMsg(null);
   };
 
   return (
@@ -101,7 +127,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
         </button>
 
         {/* Modal Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <div style={{
             width: '52px',
             height: '52px',
@@ -116,12 +142,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
             <ShieldCheck size={28} color="#ffffff" />
           </div>
           <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#ffffff', marginBottom: '6px' }}>
-            {mode === 'login' ? 'Welcome Back' : 'Create LabelLens Account'}
+            {mode === 'login' ? 'Welcome Back' : 'Create Free Account'}
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
             {mode === 'login'
               ? 'Sign in to access saved BYOK keys and private scan preferences.'
-              : 'Sign up to safely persist your own AI keys and personal nutrition history.'}
+              : 'Sign up to safely persist your own AI keys and personal food scans.'}
           </p>
         </div>
 
@@ -137,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
         }}>
           <button
             type="button"
-            onClick={() => { setMode('login'); setError(null); }}
+            onClick={() => handleModeChange('login')}
             style={{
               background: mode === 'login' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
               border: mode === 'login' ? '1px solid rgba(56, 189, 248, 0.4)' : 'none',
@@ -154,7 +180,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
           </button>
           <button
             type="button"
-            onClick={() => { setMode('register'); setError(null); }}
+            onClick={() => handleModeChange('register')}
             style={{
               background: mode === 'register' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
               border: mode === 'register' ? '1px solid rgba(56, 189, 248, 0.4)' : 'none',
@@ -170,6 +196,25 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
             Register
           </button>
         </div>
+
+        {/* Success Alert */}
+        {successMsg && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            borderRadius: '10px',
+            padding: '10px 14px',
+            marginBottom: '18px',
+            fontSize: '0.84rem',
+            color: '#34d399',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <CheckCircle2 size={16} />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -192,7 +237,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
         {/* Auth Form */}
         <form onSubmit={handleSubmit}>
           {/* Email Field */}
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '14px' }}>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
               EMAIL ADDRESS
             </label>
@@ -203,7 +248,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
               border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               padding: '0 12px',
-              transition: 'border-color 0.2s',
             }}>
               <Mail size={16} color="var(--text-muted)" style={{ marginRight: '8px' }} />
               <input
@@ -225,10 +269,44 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
             </div>
           </div>
 
+          {/* Optional Display Name (Only in Register mode) */}
+          {mode === 'register' && (
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                DISPLAY NAME (OPTIONAL)
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'rgba(15, 23, 42, 0.8)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '10px',
+                padding: '0 12px',
+              }}>
+                <User size={16} color="var(--text-muted)" style={{ marginRight: '8px' }} />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. foodlover"
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: '#ffffff',
+                    padding: '12px 0',
+                    fontSize: '0.9rem',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Password Field */}
           <div style={{ marginBottom: '22px' }}>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-              PASSWORD (MIN 8 CHARACTERS)
+              PASSWORD (MIN 6 CHARACTERS)
             </label>
             <div style={{
               display: 'flex',
@@ -237,7 +315,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
               border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               padding: '0 12px',
-              transition: 'border-color 0.2s',
             }}>
               <Lock size={16} color="var(--text-muted)" style={{ marginRight: '8px' }} />
               <input

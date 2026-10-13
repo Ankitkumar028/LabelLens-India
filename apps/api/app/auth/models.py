@@ -5,14 +5,15 @@ from pydantic import BaseModel, Field
 
 
 class RegisterRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=50, description="Unique username")
     email: str = Field(pattern=r"^[^@]+@[^@]+\.[^@]+$", description="User email address")
-    password: str = Field(min_length=6, max_length=128, description="User password")
+    password: str = Field(min_length=6, max_length=128, description="User password (min 6 characters)")
+    username: Optional[str] = Field(default=None, max_length=50, description="Optional unique username")
 
 
 class LoginRequest(BaseModel):
-    username_or_email: str = Field(min_length=3, description="Username or email")
     password: str = Field(min_length=1, description="Password")
+    username_or_email: Optional[str] = Field(default=None, description="Username or email")
+    email: Optional[str] = Field(default=None, description="Email address fallback")
 
 
 class UserOut(BaseModel):

@@ -43,23 +43,38 @@ class AuthService:
         ).hex()
         return secrets.compare_digest(candidate_hash, expected_hash)
 
-    def register(self, username: str, email: str, password: str) -> Tuple[UserOut, str]:
+    def register(self, username: Optional[str], email: str, password: str) -> Tuple[UserOut, str]:
         """Register a new user account and generate an active session token."""
-        clean_user = username.strip()
         clean_email = email.strip().lower()
+        if not clean_email or "@" not in clean_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please provide a valid email address.",
+            )
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Check unique username or email
+            # Check unique email
             cursor.execute(
-                "SELECT id FROM users WHERE username = ? OR email = ?",
-                (clean_user, clean_email),
+                "SELECT id FROM users WHERE LOWER(email) = ?",
+                (clean_email,),
             )
             if cursor.fetchone():
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="An account with this username or email already exists.",
+                    detail="An account with this email already exists. Please sign in instead.",
                 )
+
+            # Determine clean username
+            if username and username.strip():
+                clean_user = username.strip()
+            else:
+                clean_user = clean_email.split("@")[0]
+
+            # Ensure username is unique; if taken, append a short random suffix
+            cursor.execute("SELECT id FROM users WHERE LOWER(username) = ?", (clean_user.lower(),))
+            if cursor.fetchone():
+                clean_user = f"{clean_user}_{secrets.token_hex(2)}"
 
             user_id = str(uuid.uuid4())
             pwd_hash, salt = self.hash_password(password)
@@ -87,27 +102,24 @@ class AuthService:
 
     def login(self, username_or_email: str, password: str) -> Tuple[UserOut, str]:
         """Authenticate user credentials and issue a session token."""
-        identifier = username_or_email.strip()
-        is_email = "@" in identifier
+        identifier = username_or_email.strip().lower()
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            if is_email:
-                cursor.execute(
-                    "SELECT id, username, email, password_hash, salt, created_at, saved_byok FROM users WHERE email = ?",
-                    (identifier.lower(),),
-                )
-            else:
-                cursor.execute(
-                    "SELECT id, username, email, password_hash, salt, created_at, saved_byok FROM users WHERE username = ?",
-                    (identifier,),
-                )
+            cursor.execute(
+                """
+                SELECT id, username, email, password_hash, salt, created_at, saved_byok
+                FROM users
+                WHERE LOWER(email) = ? OR LOWER(username) = ?
+                """,
+                (identifier, identifier),
+            )
 
             row = cursor.fetchone()
             if not row or not self.verify_password(password, row["password_hash"], row["salt"]):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid credentials. Please verify your username/email and password.",
+                    detail="Invalid email or password. Please verify your credentials.",
                 )
 
             user_id = row["id"]

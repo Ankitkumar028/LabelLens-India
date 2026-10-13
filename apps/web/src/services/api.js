@@ -219,30 +219,57 @@ export async function testProviderConnection({ provider, apiKey, model, baseUrl 
 // Authentication Endpoints (PBKDF2 Secured)
 // ==========================================
 
-export async function registerUser(email, password) {
+export async function registerUser(email, password, username = null) {
+  const cleanEmail = (email || '').trim();
+  const cleanUser = (username || cleanEmail.split('@')[0] || 'user').trim();
   const res = await fetch(`${BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email: cleanEmail,
+      password,
+      username: cleanUser,
+    }),
   });
 
   const data = await res.json().catch(() => ({ detail: 'Registration failed' }));
   if (!res.ok) {
-    throw new Error(data.detail || `Registration failed (${res.status})`);
+    let msg = 'Registration failed';
+    if (typeof data.detail === 'string') {
+      msg = data.detail;
+    } else if (Array.isArray(data.detail)) {
+      msg = data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+    } else if (data.message) {
+      msg = data.message;
+    }
+    throw new Error(msg);
   }
   return data;
 }
 
 export async function loginUser(email, password) {
+  const clean = (email || '').trim();
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      username_or_email: clean,
+      email: clean,
+      password,
+    }),
   });
 
   const data = await res.json().catch(() => ({ detail: 'Login failed' }));
   if (!res.ok) {
-    throw new Error(data.detail || `Login failed (${res.status})`);
+    let msg = 'Login failed';
+    if (typeof data.detail === 'string') {
+      msg = data.detail;
+    } else if (Array.isArray(data.detail)) {
+      msg = data.detail.map((d) => d.msg || JSON.stringify(d)).join(', ');
+    } else if (data.message) {
+      msg = data.message;
+    }
+    throw new Error(msg);
   }
   return data;
 }

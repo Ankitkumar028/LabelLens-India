@@ -76,3 +76,26 @@ def test_provider_test_endpoint():
     data = resp.json()
     assert data["status"] == "connected"
     assert data["provider"] == "mock"
+
+
+def test_email_only_registration_and_login():
+    """Verify consumer registration with only email and password without providing username."""
+    client = TestClient(app)
+    email = "consumer_no_user@example.com"
+    password = "ConsumerPassword123!"
+
+    # Register with no username specified
+    reg_resp = client.post(
+        "/api/auth/register",
+        json={"email": email, "password": password},
+    )
+    assert reg_resp.status_code in (200, 409)
+
+    # Login with email
+    login_resp = client.post(
+        "/api/auth/login",
+        json={"email": email, "password": password},
+    )
+    assert login_resp.status_code == 200
+    assert "token" in login_resp.json()
+

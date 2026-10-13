@@ -242,10 +242,103 @@ export default function App() {
                   fontSize: '1.05rem',
                   color: 'var(--text-secondary)',
                   maxWidth: '720px',
-                  margin: '0 auto 20px auto',
+                  margin: '0 auto 16px auto',
                 }}>
                   {t('hero_desc')}
                 </p>
+
+                {/* 3-Step Intuitive Guide */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '14px',
+                  margin: '18px auto 24px auto',
+                  flexWrap: 'wrap',
+                  maxWidth: '780px',
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '20px',
+                    padding: '5px 12px',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    <span style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: 'rgba(56, 189, 248, 0.2)',
+                      color: 'var(--accent-cyan)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.72rem',
+                    }}>1</span>
+                    <span>Upload or Snap Label</span>
+                  </div>
+
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>→</span>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '20px',
+                    padding: '5px 12px',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    <span style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      color: '#34d399',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.72rem',
+                    }}>2</span>
+                    <span>AI Vision Extracts Nutrients</span>
+                  </div>
+
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>→</span>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '20px',
+                    padding: '5px 12px',
+                    fontSize: '0.8rem',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    <span style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: 'rgba(168, 85, 247, 0.2)',
+                      color: '#c084fc',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.72rem',
+                    }}>3</span>
+                    <span>Instant WHO & FSSAI Score</span>
+                  </div>
+                </div>
 
                 {/* Quick Action Badges (Barcode + BYOK Key) */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
