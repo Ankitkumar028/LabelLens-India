@@ -98,6 +98,34 @@ describe('Frontend Components', () => {
     expect(screen.getByText('PASSED')).toBeDefined();
   });
 
+  it('renders LabelComplianceCard with NON_COMPLIANT status for non-food images', () => {
+    const compliance = {
+      status: 'NON_COMPLIANT',
+      summary: 'Non-food image provided. Mandatory FSSAI 2020 packaging declarations cannot be verified.',
+      checks: [
+        {
+          title: '14-Digit FSSAI License',
+          fssai_clause: 'FSSAI 2020 Clause 5(5)',
+          status: 'NOT_DETECTED',
+          details: 'No food packaging or FSSAI license detected.',
+        },
+      ],
+    };
+    render(<LabelComplianceCard compliance={compliance} />);
+    expect(screen.getByText('Non-Compliant Notice')).toBeDefined();
+    expect(screen.getByText('Non-Compliant Packaging Notice:')).toBeDefined();
+    expect(screen.getByText('NOT DETECTED')).toBeDefined();
+  });
+
+  it('renders WhoImpactCalculator warning banner when non-food image is uploaded', () => {
+    const extraction = {
+      unreadable_fields: ['not_a_food_label'],
+      confidence: 0.0,
+    };
+    render(<WhoImpactCalculator extraction={extraction} servingSizeG={30} />);
+    expect(screen.getByText('Non-Food Image Detected — WHO Impact Calculation Unavailable')).toBeDefined();
+  });
+
   it('renders ScanConfidenceCard with confidence indicators', () => {
     const report = {
       overall_confidence: 'HIGH',
@@ -112,3 +140,4 @@ describe('Frontend Components', () => {
     expect(screen.getByText('HIGH Confidence')).toBeDefined();
   });
 });
+

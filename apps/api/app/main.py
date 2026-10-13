@@ -117,6 +117,42 @@ INFERENCE_STAGE_METRICS = Counter(
     ["provider", "status"],
 )
 
+# ===========================================================================
+# AI Model Performance, Latency & Extraction Quality Metrics
+# ===========================================================================
+MODEL_INFERENCE_LATENCY = Histogram(
+    "labellens_model_inference_duration_seconds",
+    "Vision model inference duration in seconds",
+    ["provider", "model"],
+    buckets=[0.1, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 8.0, 12.0, 20.0, 30.0],
+)
+MODEL_CONFIDENCE_HISTOGRAM = Histogram(
+    "labellens_model_confidence_score",
+    "OCR vision extraction confidence score (0.0 to 1.0)",
+    ["provider"],
+    buckets=[0.1, 0.3, 0.5, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
+)
+MODEL_DATA_QUALITY = Counter(
+    "labellens_model_data_quality_total",
+    "Extraction data quality rating distribution",
+    ["provider", "quality"],  # HIGH, MEDIUM, LOW, NEEDS_CONFIRMATION
+)
+NON_FOOD_REJECTIONS = Counter(
+    "labellens_non_food_rejections_total",
+    "Non-food images intercepted by safety guard",
+    ["provider"],
+)
+FIELD_DETECTION_STATUS = Counter(
+    "labellens_field_detection_total",
+    "Field-level detection outcomes from vision OCR",
+    ["field", "status"],  # field: product_name, per_100g_table, etc. status: DETECTED, NOT_DETECTED, UNREADABLE_OR_BLURRED
+)
+MODEL_EXECUTION_OUTCOMES = Counter(
+    "labellens_model_execution_total",
+    "Model inference execution outcomes",
+    ["provider", "model", "outcome"],  # outcome: success, non_food_rejected, error, rate_limited
+)
+
 auth_service = AuthService()
 
 
@@ -129,6 +165,16 @@ async def lifespan(app: FastAPI):
     app.state.service = LabelAnalysisService(app.state.provider, app.state.rules_engine)
     app.state.barcode_service = BarcodeService()
     app.state.auth_service = auth_service
+
+    # Pre-warm model performance metrics for Grafana dashboards
+    for prov in ("gemini", "openai", "vllm", "mock"):
+        MODEL_EXECUTION_OUTCOMES.labels(provider=prov, model="default", outcome="success")
+        NON_FOOD_REJECTIONS.labels(provider=prov)
+        for dq in ("HIGH", "MEDIUM", "LOW", "NEEDS_CONFIRMATION"):
+            MODEL_DATA_QUALITY.labels(provider=prov, quality=dq)
+    for f in ("product_name", "per_100g_table", "ingredients_list", "fssai_license", "veg_mark", "serving_size"):
+        for st in ("DETECTED", "NOT_DETECTED", "UNREADABLE_OR_BLURRED"):
+            FIELD_DETECTION_STATUS.labels(field=f, status=st)
     yield
 
 
@@ -400,6 +446,7 @@ async def analyze_label(
 
     active_service = app.state.service
     active_provider_name = settings.llm_provider
+    active_model_name = getattr(active_service.provider, "model_name", "default")
 
     if target_provider or target_api_key:
         # Dynamically instantiate custom BYOK provider
@@ -412,6 +459,7 @@ async def analyze_label(
             )
             active_service = LabelAnalysisService(custom_provider, app.state.rules_engine)
             active_provider_name = custom_provider.name
+            active_model_name = getattr(custom_provider, "model_name", target_model or "custom")
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -438,6 +486,40 @@ async def analyze_label(
         inf_duration = time.perf_counter() - inf_start
         PIPELINE_STAGE_LATENCY.labels(stage="3_vision_ai").observe(inf_duration)
         INFERENCE_STAGE_METRICS.labels(provider=active_provider_name, status="success").inc()
+
+        # Model Performance & Vision Evaluation Instrumentation
+        MODEL_INFERENCE_LATENCY.labels(
+            provider=active_provider_name,
+            model=active_model_name,
+        ).observe(inf_duration)
+
+        is_non_food = (
+            "not_a_food_label" in result.extraction.unreadable_fields
+            or (result.extraction.confidence == 0.0 and result.extraction.per_100g is None and not result.extraction.ingredients)
+        )
+        if is_non_food:
+            NON_FOOD_REJECTIONS.labels(provider=active_provider_name).inc()
+            MODEL_EXECUTION_OUTCOMES.labels(
+                provider=active_provider_name,
+                model=active_model_name,
+                outcome="non_food_rejected",
+            ).inc()
+        else:
+            MODEL_EXECUTION_OUTCOMES.labels(
+                provider=active_provider_name,
+                model=active_model_name,
+                outcome="success",
+            ).inc()
+
+        MODEL_CONFIDENCE_HISTOGRAM.labels(provider=active_provider_name).observe(float(result.extraction.confidence))
+
+        if result.confidence_report:
+            MODEL_DATA_QUALITY.labels(
+                provider=active_provider_name,
+                quality=result.confidence_report.data_quality,
+            ).inc()
+            for field, f_status in result.confidence_report.field_statuses.items():
+                FIELD_DETECTION_STATUS.labels(field=field, status=f_status).inc()
 
         # Stage 4: Rules Engine
         PIPELINE_STAGE_REQUESTS.labels(stage="4_rules_engine", status="evaluated").inc()
@@ -466,9 +548,20 @@ async def analyze_label(
         return result
     except HTTPException:
         PIPELINE_STAGE_REQUESTS.labels(stage="3_vision_ai", status="error").inc()
+        MODEL_EXECUTION_OUTCOMES.labels(
+            provider=active_provider_name,
+            model=active_model_name,
+            outcome="error",
+        ).inc()
         raise
     except Exception as e:
         PIPELINE_STAGE_REQUESTS.labels(stage="3_vision_ai", status="error").inc()
+        err_outcome = "rate_limited" if "429" in str(e) or "quota" in str(e).lower() else "error"
+        MODEL_EXECUTION_OUTCOMES.labels(
+            provider=active_provider_name,
+            model=active_model_name,
+            outcome=err_outcome,
+        ).inc()
         import traceback
         traceback.print_exc()
         raise HTTPException(

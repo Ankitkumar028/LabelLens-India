@@ -306,11 +306,14 @@ class RulesEngine:
         elif compliant_count >= 2:
             overall = "PARTIALLY_DETECTED"
             summary = "Key declarations detected; review uncaptured packaging surfaces."
-        else:
+        elif compliant_count == 1:
             overall = "NEEDS_REVIEW"
             summary = "Multiple statutory label elements were not identified in this photo view."
+        else:
+            overall = "NON_COMPLIANT"
+            summary = "No statutory FSSAI 2020 label elements were identified in this photo view."
 
-        return LabelComplianceReport(status=overall, summary=summary, checks=checks)
+        return LabelComplianceReport(status=overall, overall_status=overall, summary=summary, checks=checks)
 
     def _build_confidence_report(self, extraction: LabelExtraction) -> ScanConfidenceReport:
         """Generate audit report on OCR data quality and provenance."""
@@ -381,9 +384,56 @@ class RulesEngine:
                 },
             )
             compliance = LabelComplianceReport(
-                status="NEEDS_REVIEW",
-                summary="Non-food image provided; regulatory compliance cannot be verified.",
-                checks=[],
+                status="NON_COMPLIANT",
+                overall_status="NON_COMPLIANT",
+                summary="Non-food image provided. Mandatory FSSAI 2020 packaging and statutory label declarations cannot be verified.",
+                checks=[
+                    ComplianceCheck(
+                        id="fssai_license",
+                        title="14-Digit FSSAI License",
+                        name="14-Digit FSSAI License",
+                        status="NOT_DETECTED",
+                        details="No food packaging or FSSAI 14-digit license number detected in this non-food image.",
+                        fssai_clause="FSSAI 2020 Clause 5(5)",
+                        clause="FSSAI 2020 Clause 5(5)",
+                    ),
+                    ComplianceCheck(
+                        id="veg_nonveg_symbol",
+                        title="Veg / Non-Veg Symbol",
+                        name="Veg / Non-Veg Symbol",
+                        status="NOT_DETECTED",
+                        details="Statutory green circle (Veg) or brown triangle (Non-Veg) logo not detected.",
+                        fssai_clause="FSSAI 2020 Clause 5(4)",
+                        clause="FSSAI 2020 Clause 5(4)",
+                    ),
+                    ComplianceCheck(
+                        id="allergen_declaration",
+                        title="Allergen Statement",
+                        name="Allergen Statement",
+                        status="NOT_DETECTED",
+                        details="Mandatory 'Contains...' or 'May Contain...' allergen warning declaration absent.",
+                        fssai_clause="FSSAI 2020 Clause 5(3)(ix)",
+                        clause="FSSAI 2020 Clause 5(3)(ix)",
+                    ),
+                    ComplianceCheck(
+                        id="per_100g_format",
+                        title="Per-100g / 100ml Nutritional Panel",
+                        name="Per-100g / 100ml Nutritional Panel",
+                        status="NOT_DETECTED",
+                        details="Mandatory per-100g nutritional information table missing.",
+                        fssai_clause="FSSAI 2020 Clause 5(3)",
+                        clause="FSSAI 2020 Clause 5(3)",
+                    ),
+                    ComplianceCheck(
+                        id="date_marking",
+                        title="Date & Shelf-Life Declaration",
+                        name="Date & Shelf-Life Declaration",
+                        status="NOT_DETECTED",
+                        details="Mandatory manufacturing date, expiry, or 'Best Before' declaration not found.",
+                        fssai_clause="FSSAI 2020 Clause 5(10)",
+                        clause="FSSAI 2020 Clause 5(10)",
+                    ),
+                ],
             )
             who_impact = self._build_who_impact(extraction)
             conf_report = ScanConfidenceReport(

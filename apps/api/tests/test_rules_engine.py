@@ -113,3 +113,33 @@ def test_score_boundary_clamping(rules_engine: RulesEngine):
     assert score.value >= 0
     assert score.value <= 100
     assert score.grade == "RED"
+
+
+def test_non_food_image_triggers_non_compliant_fssai_status(rules_engine: RulesEngine):
+    """Uploading a non-food image (e.g. human hands) triggers NON_COMPLIANT status and 5 failed statutory checks."""
+    hands_image_extraction = LabelExtraction(
+        product_name=None,
+        per_100g=None,
+        ingredients=[],
+        confidence=0.0,
+        unreadable_fields=["not_a_food_label"],
+    )
+    result = rules_engine.evaluate(hands_image_extraction)
+
+    # 1. Health score is 0 and RED grade
+    assert result.score.value == 0
+    assert result.score.grade == "RED"
+    assert any(rf.id == "not_a_food_label" for rf in result.red_flags)
+
+    # 2. Compliance status MUST be NON_COMPLIANT, never COMPLIANT
+    assert result.compliance.status == "NON_COMPLIANT"
+    assert result.compliance.overall_status == "NON_COMPLIANT"
+    assert "Non-food image" in result.compliance.summary
+
+    # 3. All 5 statutory checks are present and marked NOT_DETECTED
+    assert len(result.compliance.checks) == 5
+    for check in result.compliance.checks:
+        assert check.status == "NOT_DETECTED"
+        assert check.name == check.title
+        assert check.clause == check.fssai_clause
+

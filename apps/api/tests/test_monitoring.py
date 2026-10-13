@@ -87,3 +87,25 @@ def test_prometheus_alert_rules_yaml_validity():
     assert "HighRequestLatency" in rule_names
     assert "High5xxErrorRate" in rule_names
     assert "CriticalFSSAIRedFlagSpike" in rule_names
+
+
+def test_model_performance_metrics_exported(client, sample_jpeg_bytes: bytes):
+    """Running scan and non-food checks exports model latency, quality, and rejection metrics."""
+    res = client.post(
+        "/api/analyze",
+        data={"preset": "healthy_protein_muesli"},
+        files={"file": ("muesli.jpg", sample_jpeg_bytes, "image/jpeg")},
+    )
+    assert res.status_code == 200
+
+    metrics_res = client.get("/metrics")
+    assert metrics_res.status_code == 200
+    body = metrics_res.text
+
+    assert "labellens_model_inference_duration_seconds" in body
+    assert "labellens_model_confidence_score" in body
+    assert "labellens_model_data_quality_total" in body
+    assert "labellens_field_detection_total" in body
+    assert "labellens_model_execution_total" in body
+    assert "labellens_non_food_rejections_total" in body
+

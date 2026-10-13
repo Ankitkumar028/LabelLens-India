@@ -15,7 +15,7 @@
       "icon": "dashboard",
       "includeVars": true,
       "keepTime": true,
-      "tags": ["overview", "architecture", "labellens"],
+      "tags": ["overview", "architecture", "model", "labellens"],
       "title": "LabelLens Intelligence Suite",
       "type": "dashboards"
     }

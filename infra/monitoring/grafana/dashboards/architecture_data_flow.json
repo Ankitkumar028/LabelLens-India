@@ -15,7 +15,7 @@
       "icon": "dashboard",
       "includeVars": true,
       "keepTime": true,
-      "tags": ["overview", "marketing", "labellens"],
+      "tags": ["overview", "marketing", "model", "labellens"],
       "title": "LabelLens Intelligence Suite",
       "type": "dashboards"
     }

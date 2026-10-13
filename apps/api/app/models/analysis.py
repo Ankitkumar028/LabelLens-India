@@ -26,21 +26,34 @@ class ComplianceCheck(BaseModel):
 
     id: str = Field(description="Identifier of regulatory check")
     title: str = Field(description="Name of the regulatory item")
-    status: Literal["COMPLIANT", "NEEDS_REVIEW", "NOT_DETECTED", "EXEMPT"] = Field(
+    name: Optional[str] = Field(default=None, description="Alias for title")
+    status: Literal["COMPLIANT", "NEEDS_REVIEW", "NOT_DETECTED", "EXEMPT", "FAILED"] = Field(
         description="Compliance status"
     )
     details: str = Field(description="Contextual note regarding detection in the uploaded image")
     fssai_clause: Optional[str] = Field(default=None, description="FSSAI 2020 regulation reference")
+    clause: Optional[str] = Field(default=None, description="Alias for fssai_clause")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.name is None:
+            self.name = self.title
+        if self.clause is None:
+            self.clause = self.fssai_clause
 
 
 class LabelComplianceReport(BaseModel):
     """Separate FSSAI regulatory compliance audit (kept distinct from nutrition quality score)."""
 
-    status: Literal["COMPLIANT", "PARTIALLY_DETECTED", "NEEDS_REVIEW"] = Field(
+    status: Literal["COMPLIANT", "PARTIALLY_DETECTED", "NEEDS_REVIEW", "NON_COMPLIANT"] = Field(
         description="Overall compliance visibility"
     )
+    overall_status: Optional[str] = Field(default=None, description="Alias for status")
     summary: str = Field(description="Executive summary of label elements")
     checks: List[ComplianceCheck] = Field(default_factory=list, description="Detailed requirement checks")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.overall_status is None:
+            self.overall_status = self.status
 
 
 class NutrientDailyImpact(BaseModel):
